@@ -9,6 +9,7 @@ import { ApiKeyModal } from '@/components/auth/ApiKeyModal';
 import { GuestBanner } from '@/components/auth/GuestBanner';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useApiKeys } from '@/lib/hooks/useApiKeys';
+import { useServerSettings } from '@/lib/hooks/useServerSettings';
 import { useSearchHistory } from '@/lib/hooks/useSearchHistory';
 import { useBookmarks } from '@/lib/hooks/useBookmarks';
 import { ProviderName, AnalysisResult, PROVIDER_INFO } from '@/types/analysis';
@@ -127,6 +128,15 @@ function getTicker(companyName: string): string | undefined {
 
 export default function Home() {
   const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
+  const {
+    settings: serverSettings,
+    loaded: serverSettingsLoaded,
+    selectedProvider: serverProvider,
+    getSelectedModel: getServerModel,
+    hasKey: serverHasKey,
+    webSearchProvider: serverWebSearchProvider,
+    refreshSettings
+  } = useServerSettings();
   const [loading, setLoading] = useState(false);
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
@@ -155,23 +165,21 @@ export default function Home() {
     webSearchProvider,
     setWebSearchProvider
   } = useApiKeys();
-  const selectedModel = getSelectedModel(selectedProvider);
+  const localSelectedModel = getSelectedModel(selectedProvider);
   const { history, addToHistory, removeFromHistory, clearHistory, loaded: historyLoaded } = useSearchHistory();
   const { bookmarks, addBookmark, removeBookmark, isBookmarked, getBookmark, loaded: bookmarksLoaded } = useBookmarks();
+
+  // Use server settings when authenticated, local settings otherwise (for admin editing)
+  const effectiveProvider = isAuthenticated ? serverProvider : selectedProvider;
+  const effectiveModel = isAuthenticated ? getServerModel(effectiveProvider) : localSelectedModel;
+  const effectiveHasKey = isAuthenticated ? serverHasKey(effectiveProvider) : hasKey(effectiveProvider);
+  const effectiveWebSearchProvider = isAuthenticated ? serverWebSearchProvider : webSearchProvider;
 
   const handleSearch = useCallback(
     async (company: string, info?: CompanyInfo) => {
       // Check authentication first
       if (!isAuthenticated) {
         toast.error('Please sign in to analyze companies');
-        return;
-      }
-
-      const apiKey = getKey(selectedProvider);
-
-      if (!apiKey) {
-        setShowApiKeyModal(true);
-        toast.error(`Please configure your ${PROVIDER_INFO[selectedProvider].name} API key first`);
         return;
       }
 
@@ -184,21 +192,13 @@ export default function Home() {
       setActiveTab('search');
 
       try {
-        // Determine which web search key to send based on user preference
-        const webSearchConfig = {
-          webSearchApiKey: webSearchProvider === 'websearchapi' ? webSearchApiKey : undefined,
-          tavilyApiKey: webSearchProvider === 'tavily' ? tavilyApiKey : undefined
-        };
-
+        // For authenticated users, the server uses its own settings
+        // We just send the company name, server handles provider/model/keys
         const response = await fetch('/api/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            companyName: company,
-            provider: selectedProvider,
-            model: selectedModel,
-            apiKey,
-            ...webSearchConfig
+            companyName: company
           })
         });
 
@@ -214,11 +214,11 @@ export default function Home() {
         setWebSearchUsed(successData.webSearchUsed || false);
         setWebSearchError(successData.webSearchError || null);
 
-        // Save to history
-        addToHistory(company, selectedProvider, successData.data);
+        // Save to history using effective provider
+        addToHistory(company, effectiveProvider, successData.data);
 
         const webSearchNote = successData.webSearchUsed ? ' with web search' : '';
-        toast.success(`Analysis complete using ${PROVIDER_INFO[selectedProvider].name}${webSearchNote}`);
+        toast.success(`Analysis complete using ${PROVIDER_INFO[effectiveProvider].name}${webSearchNote}`);
 
         // Show warning if web search failed
         if (successData.webSearchError) {
@@ -232,7 +232,7 @@ export default function Home() {
         setLoading(false);
       }
     },
-    [isAuthenticated, selectedProvider, selectedModel, getKey, addToHistory, webSearchApiKey, tavilyApiKey, webSearchProvider]
+    [isAuthenticated, effectiveProvider, addToHistory]
   );
 
   const handleLoadFromHistory = useCallback((item: typeof history[0]) => {
@@ -289,7 +289,7 @@ export default function Home() {
     toast.success(`${PROVIDER_INFO[selectedProvider].name} API key saved`);
   };
 
-  const loaded = keysLoaded && historyLoaded && bookmarksLoaded && !authLoading;
+  const loaded = keysLoaded && historyLoaded && bookmarksLoaded && !authLoading && serverSettingsLoaded;
 
   if (!loaded) {
     return (
@@ -318,8 +318,8 @@ export default function Home() {
       <Header
         onSearch={handleSearch}
         loading={loading}
-        selectedProvider={selectedProvider}
-        selectedModel={selectedModel}
+        selectedProvider={effectiveProvider}
+        selectedModel={effectiveModel}
         onSettingsClick={handleSettingsClick}
       />
 
@@ -371,24 +371,24 @@ export default function Home() {
                 {isAuthenticated && !isAdmin && (
                   <p className="text-emerald-400 text-sm flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    Ready to analyze using {PROVIDER_INFO[selectedProvider].name}
+                    Ready to analyze using {PROVIDER_INFO[effectiveProvider].name}
                   </p>
                 )}
 
-                {isAdmin && !hasKey(selectedProvider) && (
+                {isAdmin && !effectiveHasKey && (
                   <button
                     onClick={() => setShowApiKeyModal(true)}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors btn-scale"
                   >
                     <Sparkles className="w-4 h-4" />
-                    Configure {PROVIDER_INFO[selectedProvider].name} API Key
+                    Configure {PROVIDER_INFO[effectiveProvider].name} API Key
                   </button>
                 )}
 
-                {isAdmin && hasKey(selectedProvider) && (
+                {isAdmin && effectiveHasKey && (
                   <p className="text-emerald-400 text-sm flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    {PROVIDER_INFO[selectedProvider].name} API key configured
+                    {PROVIDER_INFO[effectiveProvider].name} API key configured
                   </p>
                 )}
 
@@ -417,12 +417,10 @@ export default function Home() {
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
                   <span className="text-zinc-400">
-                    Analyzing {companyName} with {PROVIDER_INFO[selectedProvider].name}
-                    {!PROVIDER_INFO[selectedProvider].supportsWebGrounding &&
-                     webSearchProvider !== 'none' &&
-                     ((webSearchProvider === 'tavily' && tavilyApiKey) ||
-                      (webSearchProvider === 'websearchapi' && webSearchApiKey)) && (
-                      <span className="text-cyan-400"> + {webSearchProvider === 'tavily' ? 'Tavily' : 'WebSearchAPI'}</span>
+                    Analyzing {companyName} with {PROVIDER_INFO[effectiveProvider].name}
+                    {!PROVIDER_INFO[effectiveProvider].supportsWebGrounding &&
+                     effectiveWebSearchProvider !== 'none' && (
+                      <span className="text-cyan-400"> + {effectiveWebSearchProvider === 'tavily' ? 'Tavily' : 'WebSearchAPI'}</span>
                     )}
                     ...
                   </span>
@@ -437,7 +435,7 @@ export default function Home() {
                 companyInfo={companyInfo}
                 data={analysisData}
                 ticker={ticker}
-                provider={selectedProvider}
+                provider={effectiveProvider}
                 isBookmarked={isBookmarked(companyName)}
                 onToggleBookmark={handleToggleBookmark}
                 webSearchUsed={webSearchUsed}
@@ -634,7 +632,7 @@ export default function Home() {
           open={showApiKeyModal}
           onOpenChange={setShowApiKeyModal}
           selectedProvider={selectedProvider}
-          selectedModel={selectedModel}
+          selectedModel={localSelectedModel}
           onProviderChange={setSelectedProvider}
           onModelChange={(model) => setSelectedModel(selectedProvider, model)}
           onSaveApiKey={handleSaveApiKey}
