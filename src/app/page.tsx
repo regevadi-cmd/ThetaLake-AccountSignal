@@ -6,6 +6,7 @@ import { Header, CompanyInfo } from '@/components/layout/Header';
 import { AnalysisDashboard } from '@/components/analysis/AnalysisDashboard';
 import { DashboardSkeleton } from '@/components/analysis/DashboardSkeleton';
 import { ApiKeyModal } from '@/components/auth/ApiKeyModal';
+import { AboutModal } from '@/components/AboutModal';
 import { GuestBanner } from '@/components/auth/GuestBanner';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useApiKeys } from '@/lib/hooks/useApiKeys';
@@ -143,6 +144,7 @@ export default function Home() {
   const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
   const [activeTab, setActiveTab] = useState('search');
   const [webSearchUsed, setWebSearchUsed] = useState(false);
   const [webSearchError, setWebSearchError] = useState<string | null>(null);
@@ -374,6 +376,7 @@ export default function Home() {
         selectedProvider={effectiveProvider}
         selectedModel={effectiveModel}
         onSettingsClick={handleSettingsClick}
+        onAboutClick={() => setShowAboutModal(true)}
       />
 
       <main className="max-w-7xl mx-auto px-4 py-6">
@@ -693,6 +696,12 @@ export default function Home() {
           onSaveAll={handleSaveAllSettings}
         />
       )}
+
+      {/* About Modal */}
+      <AboutModal
+        open={showAboutModal}
+        onOpenChange={setShowAboutModal}
+      />
     </div>
   );
 }

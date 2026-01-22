@@ -32,6 +32,7 @@ interface HeaderProps {
   selectedProvider: ProviderName;
   selectedModel: string;
   onSettingsClick: () => void;
+  onAboutClick: () => void;
 }
 
 export function Header({
@@ -40,7 +41,8 @@ export function Header({
   loading,
   selectedProvider,
   selectedModel,
-  onSettingsClick
+  onSettingsClick,
+  onAboutClick
 }: HeaderProps) {
   const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
   const [searchInput, setSearchInput] = useState('');
@@ -227,7 +229,7 @@ export function Header({
             <div className="flex sm:hidden items-center gap-2">
               {!authLoading && (
                 isAuthenticated ? (
-                  <UserMenu onSettingsClick={isAdmin ? onSettingsClick : undefined} />
+                  <UserMenu onSettingsClick={isAdmin ? onSettingsClick : undefined} onAboutClick={onAboutClick} />
                 ) : (
                   <LoginButton />
                 )
@@ -350,7 +352,7 @@ export function Header({
           <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
             {!authLoading && (
               isAuthenticated ? (
-                <UserMenu onSettingsClick={isAdmin ? onSettingsClick : undefined} />
+                <UserMenu onSettingsClick={isAdmin ? onSettingsClick : undefined} onAboutClick={onAboutClick} />
               ) : (
                 <LoginButton />
               )
