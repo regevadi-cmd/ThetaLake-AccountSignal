@@ -19,7 +19,7 @@ function isValidHttpUrl(url: string): boolean {
 export function TechNews({ news }: TechNewsProps) {
   return (
     <SectionCard title="AI & Technology News" icon={Cpu} color="cyan" className="xl:col-span-2">
-      <div className="h-64 sm:h-80 overflow-y-auto pr-2 space-y-1">
+      <div className="max-h-64 sm:max-h-80 overflow-y-auto pr-2 space-y-1">
         {news.slice(0, 10).map((item, i) => {
           const hasValidUrl = isValidHttpUrl(item.url);
           return (
