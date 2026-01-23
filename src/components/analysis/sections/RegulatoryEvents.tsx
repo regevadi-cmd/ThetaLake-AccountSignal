@@ -8,17 +8,17 @@ interface RegulatoryEventsProps {
   events: RegulatoryEventItem[];
 }
 
-// Event type colors and labels
+// Event type colors and labels (light mode / dark mode)
 const EVENT_TYPE_INFO: Record<string, { color: string; label: string }> = {
-  fine: { color: 'bg-red-500/20 text-red-400 border-red-500/30', label: 'Fine' },
-  penalty: { color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', label: 'Penalty' },
-  settlement: { color: 'bg-amber-500/20 text-amber-400 border-amber-500/30', label: 'Settlement' },
-  enforcement: { color: 'bg-rose-500/20 text-rose-400 border-rose-500/30', label: 'Enforcement' },
-  investigation: { color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', label: 'Investigation' },
-  consent: { color: 'bg-purple-500/20 text-purple-400 border-purple-500/30', label: 'Consent Order' },
-  order: { color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30', label: 'Order' },
-  action: { color: 'bg-pink-500/20 text-pink-400 border-pink-500/30', label: 'Action' },
-  other: { color: 'bg-muted text-muted-foreground border-border', label: 'Other' },
+  fine: { color: 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 border-red-300 dark:border-red-500/30', label: 'Fine' },
+  penalty: { color: 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-300 dark:border-orange-500/30', label: 'Penalty' },
+  settlement: { color: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-500/30', label: 'Settlement' },
+  enforcement: { color: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-500/30', label: 'Enforcement' },
+  investigation: { color: 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-300 dark:border-yellow-500/30', label: 'Investigation' },
+  consent: { color: 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-300 dark:border-purple-500/30', label: 'Consent Order' },
+  order: { color: 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-500/30', label: 'Order' },
+  action: { color: 'bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-400 border-pink-300 dark:border-pink-500/30', label: 'Action' },
+  other: { color: 'bg-gray-100 dark:bg-muted text-gray-700 dark:text-muted-foreground border-gray-300 dark:border-border', label: 'Other' },
 };
 
 function getEventTypeInfo(eventType: string) {
