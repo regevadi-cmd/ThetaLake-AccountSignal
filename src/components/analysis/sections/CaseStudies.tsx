@@ -23,7 +23,7 @@ export function CaseStudies({ studies }: CaseStudiesProps) {
         {studies.slice(0, 5).map((study, i) => {
           const hasValidUrl = isValidHttpUrl(study.url);
           return (
-            <div key={i} className="py-2 border-b border-zinc-800/50 last:border-0">
+            <div key={i} className="py-2 border-b border-gray-200 dark:border-zinc-800/50 last:border-0">
               {hasValidUrl ? (
                 <a
                   href={study.url}
@@ -39,18 +39,18 @@ export function CaseStudies({ studies }: CaseStudiesProps) {
                         {study.title}
                       </span>
                       {study.summary && (
-                        <p className="text-muted-foreground text-xs mt-1 line-clamp-2">{study.summary}</p>
+                        <p className="text-gray-600 dark:text-muted-foreground text-xs mt-1 line-clamp-2">{study.summary}</p>
                       )}
                     </div>
                   </div>
                 </a>
               ) : (
                 <div className="flex items-start gap-2">
-                  <LinkIcon className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <LinkIcon className="w-4 h-4 text-gray-500 dark:text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <span className="text-muted-foreground font-medium text-sm line-clamp-2">{study.title}</span>
+                    <span className="text-gray-700 dark:text-muted-foreground font-medium text-sm line-clamp-2">{study.title}</span>
                     {study.summary && (
-                      <p className="text-muted-foreground text-xs mt-1 line-clamp-2">{study.summary}</p>
+                      <p className="text-gray-600 dark:text-muted-foreground text-xs mt-1 line-clamp-2">{study.summary}</p>
                     )}
                   </div>
                 </div>

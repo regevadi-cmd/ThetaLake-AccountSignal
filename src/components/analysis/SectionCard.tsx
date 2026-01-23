@@ -14,34 +14,34 @@ interface SectionCardProps {
 
 const colorClasses: Record<SectionColor, { border: string; bg: string; header: string }> = {
   emerald: {
-    border: 'border-emerald-500/30 dark:border-emerald-500/30',
-    bg: 'bg-emerald-500/10 dark:bg-emerald-500/5',
-    header: 'text-emerald-600 dark:text-emerald-400'
+    border: 'border-emerald-200 dark:border-emerald-500/30',
+    bg: 'bg-emerald-50 dark:bg-emerald-500/5',
+    header: 'text-emerald-700 dark:text-emerald-400'
   },
   cyan: {
-    border: 'border-cyan-500/30 dark:border-cyan-500/30',
-    bg: 'bg-cyan-500/10 dark:bg-cyan-500/5',
-    header: 'text-cyan-600 dark:text-cyan-400'
+    border: 'border-cyan-200 dark:border-cyan-500/30',
+    bg: 'bg-cyan-50 dark:bg-cyan-500/5',
+    header: 'text-cyan-700 dark:text-cyan-400'
   },
   amber: {
-    border: 'border-amber-500/30 dark:border-amber-500/30',
-    bg: 'bg-amber-500/10 dark:bg-amber-500/5',
-    header: 'text-amber-600 dark:text-amber-400'
+    border: 'border-amber-200 dark:border-amber-500/30',
+    bg: 'bg-amber-50 dark:bg-amber-500/5',
+    header: 'text-amber-700 dark:text-amber-400'
   },
   blue: {
-    border: 'border-blue-500/30 dark:border-blue-500/30',
-    bg: 'bg-blue-500/10 dark:bg-blue-500/5',
-    header: 'text-blue-600 dark:text-blue-400'
+    border: 'border-blue-200 dark:border-blue-500/30',
+    bg: 'bg-blue-50 dark:bg-blue-500/5',
+    header: 'text-blue-700 dark:text-blue-400'
   },
   purple: {
-    border: 'border-purple-500/30 dark:border-purple-500/30',
-    bg: 'bg-purple-500/10 dark:bg-purple-500/5',
-    header: 'text-purple-600 dark:text-purple-400'
+    border: 'border-purple-200 dark:border-purple-500/30',
+    bg: 'bg-purple-50 dark:bg-purple-500/5',
+    header: 'text-purple-700 dark:text-purple-400'
   },
   red: {
-    border: 'border-red-500/30 dark:border-red-500/30',
-    bg: 'bg-red-500/10 dark:bg-red-500/5',
-    header: 'text-red-600 dark:text-red-400'
+    border: 'border-red-200 dark:border-red-500/30',
+    bg: 'bg-red-50 dark:bg-red-500/5',
+    header: 'text-red-700 dark:text-red-400'
   },
   neutral: {
     border: 'border-border',
