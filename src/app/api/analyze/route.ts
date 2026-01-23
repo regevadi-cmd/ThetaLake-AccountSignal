@@ -3,7 +3,7 @@ import { createAIProvider } from '@/lib/ai/factory';
 import { AnalyzeRequest, AnalyzeResponse, ApiError, CacheMetadata } from '@/types/api';
 import { ProviderName, PROVIDER_INFO, AnalysisResult } from '@/types/analysis';
 import { searchCompanyNews, searchCompanyCaseStudies, searchCompanyInfo, searchInvestorDocuments } from '@/lib/services/webSearch';
-import { tavilySearchCompanyNews, tavilySearchCaseStudies, tavilySearchCompanyInfo, tavilySearchInvestorDocs, tavilySearchCompetitorMentions, tavilySearchLeadershipChanges, CompetitorMention } from '@/lib/services/tavilySearch';
+import { tavilySearchCompanyNews, tavilySearchCaseStudies, tavilySearchCompanyInfo, tavilySearchInvestorDocs, tavilySearchCompetitorMentions, tavilySearchLeadershipChanges, tavilySearchRegulatoryEvents, CompetitorMention, RegulatoryEvent } from '@/lib/services/tavilySearch';
 import { createClient } from '@/lib/supabase/server';
 import { parseLeadershipArticles } from '@/lib/ai/parseLeadershipNews';
 
@@ -179,13 +179,14 @@ export async function POST(request: NextRequest) {
       try {
         if (useTavily) {
           // Use Tavily for web search
-          const [newsResults, caseStudyResults, infoResults, investorDocsResults, competitorMentionsResults, leadershipResults] = await Promise.all([
+          const [newsResults, caseStudyResults, infoResults, investorDocsResults, competitorMentionsResults, leadershipResults, regulatoryResults] = await Promise.all([
             tavilySearchCompanyNews(companyName.trim(), tavilyApiKey!),
             tavilySearchCaseStudies(companyName.trim(), tavilyApiKey!),
             tavilySearchCompanyInfo(companyName.trim(), tavilyApiKey!),
             tavilySearchInvestorDocs(companyName.trim(), tavilyApiKey!),
             tavilySearchCompetitorMentions(companyName.trim(), tavilyApiKey!),
-            tavilySearchLeadershipChanges(companyName.trim(), tavilyApiKey!)
+            tavilySearchLeadershipChanges(companyName.trim(), tavilyApiKey!),
+            tavilySearchRegulatoryEvents(companyName.trim(), tavilyApiKey!)
           ]);
 
           webSearchData = {
@@ -194,7 +195,8 @@ export async function POST(request: NextRequest) {
             info: { sources: infoResults.sources.map(r => ({ title: r.title, url: r.url, description: r.content })) },
             investorDocs: investorDocsResults.map(r => ({ title: r.title, url: r.url, description: r.content })),
             competitorMentions: competitorMentionsResults,
-            leadershipChanges: leadershipResults.map(r => ({ title: r.title, url: r.url, description: r.content }))
+            leadershipChanges: leadershipResults.map(r => ({ title: r.title, url: r.url, description: r.content })),
+            regulatoryEvents: regulatoryResults
           };
         } else {
           // Use WebSearchAPI for web search
@@ -313,13 +315,27 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Replace regulatory events with real web search results (Tavily only)
+      if (webSearchData.regulatoryEvents && webSearchData.regulatoryEvents.length > 0) {
+        analysis.regulatoryEvents = webSearchData.regulatoryEvents.map((event: RegulatoryEvent) => ({
+          date: event.date,
+          regulatoryBody: event.regulatoryBody,
+          eventType: event.eventType,
+          amount: event.amount,
+          description: event.description,
+          url: event.url
+        }));
+        console.log(`Found ${webSearchData.regulatoryEvents.length} regulatory events for ${companyName}`);
+      }
+
       // Add web search sources to sources list
       const webSources = [
         ...webSearchData.news.map(n => n.url),
         ...webSearchData.caseStudies.map(c => c.url),
         ...webSearchData.investorDocs.map(d => d.url),
         ...webSearchData.info.sources.map(s => s.url),
-        ...(webSearchData.competitorMentions || []).map((c: CompetitorMention) => c.url)
+        ...(webSearchData.competitorMentions || []).map((c: CompetitorMention) => c.url),
+        ...(webSearchData.regulatoryEvents || []).map((e: RegulatoryEvent) => e.url)
       ].filter(Boolean);
 
       if (webSources.length > 0) {

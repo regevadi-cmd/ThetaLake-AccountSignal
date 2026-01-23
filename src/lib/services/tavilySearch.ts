@@ -280,6 +280,176 @@ export async function tavilySearchCompetitorMentions(
   return mentions;
 }
 
+export interface RegulatoryEvent {
+  date: string;
+  regulatoryBody: string;
+  eventType: 'fine' | 'penalty' | 'settlement' | 'enforcement' | 'investigation' | 'consent' | 'order' | 'action' | 'other';
+  amount?: string;
+  description: string;
+  url: string;
+}
+
+// Extract regulatory body from text
+function extractRegulatoryBody(text: string, url: string): string {
+  const textLower = text.toLowerCase();
+  const urlLower = url.toLowerCase();
+
+  if (urlLower.includes('sec.gov') || textLower.includes('securities and exchange commission')) return 'SEC';
+  if (urlLower.includes('finra.org') || textLower.includes('finra')) return 'FINRA';
+  if (textLower.includes('department of justice') || textLower.includes('doj ')) return 'DOJ';
+  if (urlLower.includes('fca.org') || textLower.includes('financial conduct authority')) return 'FCA';
+  if (textLower.includes('cftc') || textLower.includes('commodity futures')) return 'CFTC';
+  if (textLower.includes('occ') || textLower.includes('comptroller of the currency')) return 'OCC';
+  if (textLower.includes('federal reserve') || textLower.includes('fed ')) return 'Federal Reserve';
+  if (textLower.includes('fdic')) return 'FDIC';
+  if (textLower.includes('cfpb') || textLower.includes('consumer financial')) return 'CFPB';
+  if (textLower.includes('state attorney') || textLower.includes('attorney general')) return 'State AG';
+  if (textLower.includes('nyse') || textLower.includes('new york stock exchange')) return 'NYSE';
+  if (textLower.includes('esma')) return 'ESMA';
+
+  return 'Regulatory';
+}
+
+// Extract event type from text
+function extractEventType(text: string): RegulatoryEvent['eventType'] {
+  const textLower = text.toLowerCase();
+
+  if (textLower.includes('fine') || textLower.includes('fined')) return 'fine';
+  if (textLower.includes('penalty') || textLower.includes('penalt')) return 'penalty';
+  if (textLower.includes('settlement') || textLower.includes('settle') || textLower.includes('agreed to pay')) return 'settlement';
+  if (textLower.includes('enforcement action')) return 'enforcement';
+  if (textLower.includes('investigation') || textLower.includes('investigating') || textLower.includes('probe')) return 'investigation';
+  if (textLower.includes('consent order') || textLower.includes('consent decree')) return 'consent';
+  if (textLower.includes('cease and desist') || textLower.includes('order')) return 'order';
+  if (textLower.includes('charges') || textLower.includes('charged') || textLower.includes('action against')) return 'action';
+
+  return 'other';
+}
+
+// Extract dollar amount from text
+function extractAmount(text: string): string | undefined {
+  // Match patterns like $15 million, $249M, $1.5 billion, etc.
+  const patterns = [
+    /\$[\d,]+(?:\.\d+)?\s*(?:billion|bn)/i,
+    /\$[\d,]+(?:\.\d+)?\s*(?:million|mn|m)/i,
+    /\$[\d,]+(?:\.\d+)?/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return match[0];
+    }
+  }
+
+  return undefined;
+}
+
+// Extract date from text or URL
+function extractDate(text: string, url: string): string {
+  // Try to find year-month patterns
+  const datePatterns = [
+    /(?:january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{4}/i,
+    /\d{1,2}\/\d{1,2}\/\d{4}/,
+    /\d{4}-\d{2}-\d{2}/,
+    /(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4}/i,
+  ];
+
+  for (const pattern of datePatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return match[0];
+    }
+  }
+
+  // Try to extract year at minimum
+  const yearMatch = text.match(/20[12]\d/);
+  if (yearMatch) {
+    return yearMatch[0];
+  }
+
+  return 'Recent';
+}
+
+export async function tavilySearchRegulatoryEvents(
+  companyName: string,
+  apiKey: string
+): Promise<RegulatoryEvent[]> {
+  const events: RegulatoryEvent[] = [];
+
+  // Multiple targeted searches for different types of regulatory events
+  const searchQueries = [
+    `"${companyName}" SEC fine penalty settlement enforcement`,
+    `"${companyName}" FINRA fine disciplinary action`,
+    `"${companyName}" regulatory penalty settlement million`,
+    `"${companyName}" DOJ settlement charges`,
+  ];
+
+  try {
+    // Run searches in parallel
+    const searchPromises = searchQueries.map(query =>
+      tavilySearch(query, apiKey, {
+        maxResults: 5,
+        includeAnswer: false,
+        searchDepth: 'advanced'
+      })
+    );
+
+    const results = await Promise.all(searchPromises);
+
+    // Collect all unique results
+    const seenUrls = new Set<string>();
+
+    results.forEach(response => {
+      response.results.forEach(result => {
+        // Skip duplicates
+        if (seenUrls.has(result.url)) return;
+
+        const textLower = (result.title + ' ' + result.content).toLowerCase();
+        const companyLower = companyName.toLowerCase();
+
+        // Must mention the company
+        if (!textLower.includes(companyLower)) return;
+
+        // Must be about enforcement/fines/penalties
+        const hasRegulatoryContent =
+          textLower.includes('fine') ||
+          textLower.includes('penalty') ||
+          textLower.includes('settlement') ||
+          textLower.includes('enforcement') ||
+          textLower.includes('charges') ||
+          textLower.includes('violation') ||
+          textLower.includes('consent order') ||
+          textLower.includes('investigation');
+
+        if (!hasRegulatoryContent) return;
+
+        // Exclude irrelevant pages
+        const urlLower = result.url.toLowerCase();
+        if (urlLower.includes('career') || urlLower.includes('job') || urlLower.includes('linkedin.com/jobs')) return;
+
+        seenUrls.add(result.url);
+
+        const fullText = result.title + ' ' + result.content;
+
+        events.push({
+          date: extractDate(fullText, result.url),
+          regulatoryBody: extractRegulatoryBody(fullText, result.url),
+          eventType: extractEventType(fullText),
+          amount: extractAmount(fullText),
+          description: result.title.length > 100 ? result.title.substring(0, 100) + '...' : result.title,
+          url: result.url
+        });
+      });
+    });
+  } catch (err) {
+    console.warn(`Failed to search regulatory events for ${companyName}:`, err);
+  }
+
+  // Sort by most recent (if we can parse dates) and limit to 10
+  return events.slice(0, 10);
+}
+
 export async function tavilySearchLeadershipChanges(
   companyName: string,
   apiKey: string

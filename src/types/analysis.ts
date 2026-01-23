@@ -24,7 +24,7 @@ export interface RegulatoryBodyMention {
 export interface RegulatoryEventItem {
   date: string; // Year or specific date
   regulatoryBody: string; // Which regulator took action
-  eventType: 'fine' | 'penalty' | 'settlement' | 'enforcement' | 'investigation' | 'other';
+  eventType: 'fine' | 'penalty' | 'settlement' | 'enforcement' | 'investigation' | 'consent' | 'order' | 'action' | 'other';
   amount?: string; // Fine/penalty amount if applicable
   description: string; // Brief summary of the event
   url: string; // Link to news article or official source
