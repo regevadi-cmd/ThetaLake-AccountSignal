@@ -1,6 +1,7 @@
 'use client';
 
-import { AnalysisResult, ProviderName } from '@/types/analysis';
+import { AnalysisResult, ProviderName, PROVIDER_INFO } from '@/types/analysis';
+import { CacheMetadata } from '@/types/api';
 import { CompanyInfo } from '@/components/layout/Header';
 import { SentimentBadge } from './sections/SentimentBadge';
 import { ExecutiveSummary } from './sections/ExecutiveSummary';
@@ -15,7 +16,7 @@ import { LeadershipChanges } from './sections/LeadershipChanges';
 import { MAActivity } from './sections/MAActivity';
 import { GroundingSources } from './sections/GroundingSources';
 import { StockCard } from '../stock/StockCard';
-import { Bookmark, BookmarkCheck, Globe, AlertTriangle, Database, RefreshCw } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Globe, AlertTriangle, Database, RefreshCw, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface AnalysisDashboardProps {
@@ -28,8 +29,10 @@ interface AnalysisDashboardProps {
   onToggleBookmark: () => void;
   webSearchUsed?: boolean;
   webSearchError?: string | null;
-  // Cached data props
+  // Cached data props (local - from bookmarks/history)
   cachedDataTimestamp?: number | null;
+  // Shared cache metadata (from server-side cache)
+  sharedCacheMetadata?: CacheMetadata | null;
   onRefresh?: () => void;
   isRefreshing?: boolean;
 }
@@ -65,11 +68,17 @@ export function AnalysisDashboard({
   webSearchUsed,
   webSearchError,
   cachedDataTimestamp,
+  sharedCacheMetadata,
   onRefresh,
   isRefreshing
 }: AnalysisDashboardProps) {
+  // Local cache (bookmarks/history)
   const isCached = cachedDataTimestamp !== null && cachedDataTimestamp !== undefined;
   const isStale = isCached && isDataStale(cachedDataTimestamp);
+
+  // Shared cache (server-side)
+  const isSharedCache = sharedCacheMetadata !== null && sharedCacheMetadata !== undefined;
+  const isSharedCacheStale = isSharedCache && sharedCacheMetadata.ageMinutes > 24 * 60;
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Company Header */}
@@ -107,24 +116,41 @@ export function AnalysisDashboard({
                 <span className="sm:hidden">{getRelativeTime(cachedDataTimestamp!)}</span>
               </div>
             )}
+            {isSharedCache && !isCached && (
+              <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
+                isSharedCacheStale
+                  ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
+                  : 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
+              }`}>
+                <Users className="w-3 h-3" />
+                <span className="hidden sm:inline">
+                  Shared {sharedCacheMetadata.ageMinutes < 60
+                    ? `${sharedCacheMetadata.ageMinutes}m ago`
+                    : sharedCacheMetadata.ageMinutes < 1440
+                      ? `${Math.floor(sharedCacheMetadata.ageMinutes / 60)}h ago`
+                      : `${Math.floor(sharedCacheMetadata.ageMinutes / 1440)}d ago`}
+                </span>
+                <span className="sm:hidden">Shared</span>
+              </div>
+            )}
           </div>
 
           {/* Action buttons */}
           <div className="flex items-center gap-2">
-            {isCached && onRefresh && (
+            {(isCached || isSharedCache) && onRefresh && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={onRefresh}
                 disabled={isRefreshing}
                 className={`border-zinc-700 transition-colors h-8 px-2 sm:px-3 ${
-                  isStale
+                  isStale || isSharedCacheStale
                     ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 hover:bg-emerald-500/30'
                     : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
                 }`}
               >
                 <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline ml-2">{isStale ? 'Refresh' : 'Refresh'}</span>
+                <span className="hidden sm:inline ml-2">Refresh</span>
               </Button>
             )}
             <Button
@@ -173,6 +199,46 @@ export function AnalysisDashboard({
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh Now
+          </Button>
+        </div>
+      )}
+
+      {/* Shared Cache Info Banner */}
+      {isSharedCache && !isCached && onRefresh && (
+        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-xl ${
+          isSharedCacheStale
+            ? 'bg-amber-500/10 border border-amber-500/30'
+            : 'bg-blue-500/10 border border-blue-500/30'
+        }`}>
+          <div className="flex items-center gap-3">
+            <Users className={`w-5 h-5 flex-shrink-0 ${isSharedCacheStale ? 'text-amber-400' : 'text-blue-400'}`} />
+            <div>
+              <h4 className={`font-medium text-sm ${isSharedCacheStale ? 'text-amber-400' : 'text-blue-400'}`}>
+                {isSharedCacheStale ? 'Shared analysis may be outdated' : 'Using shared analysis'}
+              </h4>
+              <p className={`text-xs mt-0.5 ${isSharedCacheStale ? 'text-amber-400/70' : 'text-blue-400/70'}`}>
+                Analyzed {sharedCacheMetadata.ageMinutes < 60
+                  ? `${sharedCacheMetadata.ageMinutes} minutes ago`
+                  : sharedCacheMetadata.ageMinutes < 1440
+                    ? `${Math.floor(sharedCacheMetadata.ageMinutes / 60)} hours ago`
+                    : `${Math.floor(sharedCacheMetadata.ageMinutes / 1440)} days ago`}
+                {sharedCacheMetadata.analyzedBy && ` by ${sharedCacheMetadata.analyzedBy}`}
+                {' '}using {PROVIDER_INFO[sharedCacheMetadata.provider]?.name || sharedCacheMetadata.provider}
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className={`w-full sm:w-auto ${
+              isSharedCacheStale
+                ? 'bg-amber-600 hover:bg-amber-500 text-white'
+                : 'bg-blue-600 hover:bg-blue-500 text-white'
+            }`}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Run Fresh Analysis
           </Button>
         </div>
       )}

@@ -1,11 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAIProvider } from '@/lib/ai/factory';
-import { AnalyzeRequest, AnalyzeResponse, ApiError } from '@/types/api';
-import { ProviderName, PROVIDER_INFO } from '@/types/analysis';
+import { AnalyzeRequest, AnalyzeResponse, ApiError, CacheMetadata } from '@/types/api';
+import { ProviderName, PROVIDER_INFO, AnalysisResult } from '@/types/analysis';
 import { searchCompanyNews, searchCompanyCaseStudies, searchCompanyInfo, searchInvestorDocuments } from '@/lib/services/webSearch';
 import { tavilySearchCompanyNews, tavilySearchCaseStudies, tavilySearchCompanyInfo, tavilySearchInvestorDocs, tavilySearchCompetitorMentions, tavilySearchLeadershipChanges, CompetitorMention } from '@/lib/services/tavilySearch';
 import { createClient } from '@/lib/supabase/server';
 import { parseLeadershipArticles } from '@/lib/ai/parseLeadershipNews';
+
+// Cache expiry: 24 hours (in minutes)
+const CACHE_EXPIRY_MINUTES = 24 * 60;
+
+// Type for cached analysis record
+interface CachedAnalysis {
+  id: string;
+  company_name: string;
+  analysis_data: AnalysisResult;
+  provider: string;
+  model: string | null;
+  web_search_used: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  updated_by: string | null;
+  creator_email?: string;
+}
 
 // Type for server settings
 interface ServerSettings {
@@ -54,7 +72,8 @@ export async function POST(request: NextRequest) {
       model: clientModel,
       apiKey: clientApiKey,
       webSearchApiKey: clientWebSearchApiKey,
-      tavilyApiKey: clientTavilyApiKey
+      tavilyApiKey: clientTavilyApiKey,
+      forceRefresh = false
     } = body;
 
     // Validate input
@@ -67,6 +86,49 @@ export async function POST(request: NextRequest) {
 
     // Fetch server settings from Supabase
     const supabase = await createClient();
+
+    // Get current user for cache attribution
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Check for cached analysis (unless forceRefresh is true)
+    const companyNameLower = companyName.trim().toLowerCase();
+
+    if (!forceRefresh) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: cachedAnalysis } = await (supabase as any)
+        .from('company_analyses')
+        .select(`
+          *,
+          creator:profiles!company_analyses_created_by_fkey(email)
+        `)
+        .eq('company_name_lower', companyNameLower)
+        .single();
+
+      if (cachedAnalysis) {
+        const cached = cachedAnalysis as CachedAnalysis & { creator: { email: string } | null };
+        const updatedAt = new Date(cached.updated_at);
+        const ageMinutes = Math.floor((Date.now() - updatedAt.getTime()) / 60000);
+
+        // Return cached data with metadata
+        const cacheMetadata: CacheMetadata = {
+          analyzedAt: cached.updated_at,
+          analyzedBy: cached.creator?.email || undefined,
+          provider: cached.provider as ProviderName,
+          model: cached.model || undefined,
+          ageMinutes
+        };
+
+        console.log(`Returning cached analysis for "${companyName}" (${ageMinutes} minutes old)`);
+
+        return NextResponse.json<AnalyzeResponse>({
+          data: cached.analysis_data,
+          cached: true,
+          cacheMetadata,
+          provider: cached.provider as ProviderName,
+          webSearchUsed: cached.web_search_used
+        });
+      }
+    }
     const { data: settings } = await supabase
       .from('app_settings')
       .select('*')
@@ -270,11 +332,38 @@ export async function POST(request: NextRequest) {
       console.log(`${webSearchProviderName} status:`, webSearchData ? 'SUCCESS' : `FAILED: ${webSearchError}`);
     }
 
+    // Save analysis to shared cache
+    const webSearchUsed = shouldUseWebSearch && webSearchData !== null;
+    try {
+      // Use upsert to handle both new and refresh cases
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any)
+        .from('company_analyses')
+        .upsert({
+          company_name: companyName.trim(),
+          company_name_lower: companyNameLower,
+          analysis_data: analysis,
+          provider: provider,
+          model: model || null,
+          web_search_used: webSearchUsed,
+          created_by: user?.id || null,
+          updated_at: new Date().toISOString(),
+          updated_by: user?.id || null
+        }, {
+          onConflict: 'company_name_lower'
+        });
+
+      console.log(`Cached analysis for "${companyName}"`);
+    } catch (cacheError) {
+      // Don't fail the request if caching fails
+      console.warn('Failed to cache analysis:', cacheError);
+    }
+
     return NextResponse.json<AnalyzeResponse>({
       data: analysis,
       cached: false,
       provider: provider as ProviderName,
-      webSearchUsed: shouldUseWebSearch && webSearchData !== null,
+      webSearchUsed,
       webSearchError: webSearchError || undefined
     });
   } catch (error) {

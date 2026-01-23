@@ -14,7 +14,7 @@ import { useServerSettings } from '@/lib/hooks/useServerSettings';
 import { useSearchHistory } from '@/lib/hooks/useSearchHistory';
 import { useBookmarks } from '@/lib/hooks/useBookmarks';
 import { ProviderName, AnalysisResult, PROVIDER_INFO } from '@/types/analysis';
-import { AnalyzeResponse, ApiError } from '@/types/api';
+import { AnalyzeResponse, ApiError, CacheMetadata } from '@/types/api';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Toaster, toast } from 'sonner';
@@ -150,6 +150,8 @@ export default function Home() {
   const [webSearchError, setWebSearchError] = useState<string | null>(null);
   // Track if current data is from cache (bookmark/history)
   const [cachedDataTimestamp, setCachedDataTimestamp] = useState<number | null>(null);
+  // Track shared cache metadata (from server-side cache)
+  const [sharedCacheMetadata, setSharedCacheMetadata] = useState<CacheMetadata | null>(null);
 
   const {
     getKey,
@@ -178,7 +180,7 @@ export default function Home() {
   const effectiveWebSearchProvider = isAuthenticated ? serverWebSearchProvider : webSearchProvider;
 
   const handleSearch = useCallback(
-    async (company: string, info?: CompanyInfo) => {
+    async (company: string, info?: CompanyInfo, forceRefresh = false) => {
       // Check authentication first
       if (!isAuthenticated) {
         toast.error('Please sign in to analyze companies');
@@ -191,6 +193,7 @@ export default function Home() {
       setCompanyInfo(info || null);
       setAnalysisData(null);
       setCachedDataTimestamp(null); // Fresh data, not from cache
+      setSharedCacheMetadata(null); // Clear shared cache metadata
       setActiveTab('search');
 
       try {
@@ -200,7 +203,8 @@ export default function Home() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            companyName: company
+            companyName: company,
+            forceRefresh
           })
         });
 
@@ -216,11 +220,25 @@ export default function Home() {
         setWebSearchUsed(successData.webSearchUsed || false);
         setWebSearchError(successData.webSearchError || null);
 
-        // Save to history using effective provider
-        addToHistory(company, effectiveProvider, successData.data);
+        // Handle cached vs fresh response
+        if (successData.cached && successData.cacheMetadata) {
+          setSharedCacheMetadata(successData.cacheMetadata);
+          const ageText = successData.cacheMetadata.ageMinutes < 60
+            ? `${successData.cacheMetadata.ageMinutes}m ago`
+            : successData.cacheMetadata.ageMinutes < 1440
+              ? `${Math.floor(successData.cacheMetadata.ageMinutes / 60)}h ago`
+              : `${Math.floor(successData.cacheMetadata.ageMinutes / 1440)}d ago`;
+          toast.info(`Loaded cached analysis (${ageText})`, {
+            description: 'Click "Refresh" for fresh data',
+            duration: 5000
+          });
+        } else {
+          // Save to history using effective provider (only for fresh analyses)
+          addToHistory(company, effectiveProvider, successData.data);
 
-        const webSearchNote = successData.webSearchUsed ? ' with web search' : '';
-        toast.success(`Analysis complete using ${PROVIDER_INFO[effectiveProvider].name}${webSearchNote}`);
+          const webSearchNote = successData.webSearchUsed ? ' with web search' : '';
+          toast.success(`Analysis complete using ${PROVIDER_INFO[effectiveProvider].name}${webSearchNote}`);
+        }
 
         // Show warning if web search failed
         if (successData.webSearchError) {
@@ -281,8 +299,8 @@ export default function Home() {
 
   const handleRefresh = useCallback(() => {
     if (companyName) {
-      // Re-run the search with fresh data
-      handleSearch(companyName, companyInfo || undefined);
+      // Re-run the search with fresh data (force refresh to bypass cache)
+      handleSearch(companyName, companyInfo || undefined, true);
     }
   }, [companyName, companyInfo, handleSearch]);
 
@@ -497,6 +515,7 @@ export default function Home() {
                 webSearchUsed={webSearchUsed}
                 webSearchError={webSearchError}
                 cachedDataTimestamp={cachedDataTimestamp}
+                sharedCacheMetadata={sharedCacheMetadata}
                 onRefresh={handleRefresh}
                 isRefreshing={loading}
               />
