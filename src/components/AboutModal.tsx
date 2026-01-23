@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
-import packageJson from '../../package.json';
 
 interface AboutModalProps {
   open: boolean;
@@ -15,7 +14,7 @@ interface AboutModalProps {
 }
 
 export function AboutModal({ open, onOpenChange }: AboutModalProps) {
-  const version = packageJson.version;
+  const version = process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0';
   const buildId = process.env.NEXT_PUBLIC_BUILD_ID || 'dev';
   const buildDate = process.env.NEXT_PUBLIC_BUILD_DATE
     ? new Date(process.env.NEXT_PUBLIC_BUILD_DATE).toLocaleDateString('en-US', {
