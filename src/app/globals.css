@@ -124,28 +124,28 @@
   }
 }
 
-/* Custom scrollbar for dark mode */
+/* Custom scrollbar - theme aware */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #18181b;
+  background: var(--background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: var(--muted);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
+  background: var(--muted-foreground);
 }
 
-/* Skeleton animation */
+/* Skeleton animation - theme aware */
 .skeleton-shimmer {
-  background: linear-gradient(90deg, #27272a 25%, #3f3f46 50%, #27272a 75%);
+  background: linear-gradient(90deg, var(--muted) 25%, var(--accent) 50%, var(--muted) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }

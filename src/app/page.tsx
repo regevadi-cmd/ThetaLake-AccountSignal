@@ -410,8 +410,8 @@ export default function Home() {
 
   if (!loaded) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="animate-pulse text-zinc-500">Loading...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
       </div>
     );
   }
@@ -419,15 +419,12 @@ export default function Home() {
   const ticker = companyName ? getTicker(companyName) : undefined;
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-background">
       <Toaster
         position="top-right"
-        theme="dark"
         toastOptions={{
-          style: {
-            background: '#18181b',
-            border: '1px solid #27272a',
-            color: '#fafafa'
+          classNames: {
+            toast: 'bg-card border-border text-foreground',
           }
         }}
       />
@@ -461,15 +458,15 @@ export default function Home() {
 
         {/* Tabs for Search / History / Bookmarks */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="bg-zinc-900 border border-zinc-800">
-            <TabsTrigger value="search" className="data-[state=active]:bg-zinc-800">
+          <TabsList className="bg-card border border-border">
+            <TabsTrigger value="search" className="data-[state=active]:bg-accent">
               Search
             </TabsTrigger>
-            <TabsTrigger value="history" className="data-[state=active]:bg-zinc-800">
+            <TabsTrigger value="history" className="data-[state=active]:bg-accent">
               <History className="w-4 h-4 mr-2" />
               History ({history.length})
             </TabsTrigger>
-            <TabsTrigger value="bookmarks" className="data-[state=active]:bg-zinc-800">
+            <TabsTrigger value="bookmarks" className="data-[state=active]:bg-accent">
               <Bookmark className="w-4 h-4 mr-2" />
               Bookmarks ({bookmarks.length})
             </TabsTrigger>
@@ -479,10 +476,10 @@ export default function Home() {
             {!analysisData && !loading && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 flex items-center justify-center mb-6">
-                  <Building2 className="w-10 h-10 text-zinc-400" />
+                  <Building2 className="w-10 h-10 text-muted-foreground" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Search for a Company</h2>
-                <p className="text-zinc-500 max-w-md mb-6">
+                <h2 className="text-2xl font-bold text-foreground mb-2">Search for a Company</h2>
+                <p className="text-muted-foreground max-w-md mb-6">
                   Enter a company name above to get comprehensive intelligence including financials,
                   technology trends, competitive analysis, and M&A activity.
                 </p>
@@ -521,13 +518,13 @@ export default function Home() {
                 {/* Recent Searches Quick Access */}
                 {history.length > 0 && (
                   <div className="mt-8 w-full max-w-md">
-                    <h3 className="text-sm font-medium text-zinc-400 mb-3">Recent Searches</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3">Recent Searches</h3>
                     <div className="flex flex-wrap gap-2 justify-center">
                       {history.slice(0, 5).map((item) => (
                         <button
                           key={item.id}
                           onClick={() => handleLoadFromHistory(item)}
-                          className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-full text-sm text-zinc-300 hover:text-white transition-colors"
+                          className="px-3 py-1.5 bg-accent hover:bg-muted rounded-full text-sm text-accent-foreground hover:text-foreground transition-colors"
                         >
                           {item.companyName}
                         </button>
@@ -542,7 +539,7 @@ export default function Home() {
               <div>
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-zinc-400">
+                  <span className="text-muted-foreground">
                     Analyzing {companyName} with {PROVIDER_INFO[effectiveProvider].name}
                     {!PROVIDER_INFO[effectiveProvider].supportsWebGrounding &&
                      effectiveWebSearchProvider !== 'none' && (
@@ -577,13 +574,13 @@ export default function Home() {
           <TabsContent value="history" className="mt-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white">Search History</h2>
+                <h2 className="text-xl font-bold text-foreground">Search History</h2>
                 {history.length > 0 && (
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={clearHistory}
-                    className="border-zinc-700 text-zinc-400 hover:text-red-400 hover:border-red-500/50"
+                    className="border-border text-muted-foreground hover:text-red-400 hover:border-red-500/50"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Clear All
@@ -592,7 +589,7 @@ export default function Home() {
               </div>
 
               {history.length === 0 ? (
-                <div className="text-center py-12 text-zinc-500">
+                <div className="text-center py-12 text-muted-foreground">
                   <History className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>No search history yet</p>
                   <p className="text-sm mt-1">Your searches will appear here</p>
@@ -602,19 +599,19 @@ export default function Home() {
                   {history.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl hover:border-zinc-700 transition-colors"
+                      className="flex items-center justify-between p-4 bg-card/50 border border-border rounded-xl hover:border-input transition-colors"
                     >
                       <div className="flex items-center gap-4">
                         <div>
-                          <h3 className="font-medium text-white">{item.companyName}</h3>
-                          <div className="flex items-center gap-2 text-sm text-zinc-500 mt-1">
+                          <h3 className="font-medium text-foreground">{item.companyName}</h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                             <Clock className="w-3 h-3" />
                             {new Date(item.timestamp).toLocaleDateString()}
-                            <span className="text-zinc-600">•</span>
+                            <span className="text-border">•</span>
                             <span className={`text-xs px-1.5 py-0.5 rounded ${
                               item.sentiment === 'BULLISH' ? 'bg-emerald-500/20 text-emerald-400' :
                               item.sentiment === 'BEARISH' ? 'bg-red-500/20 text-red-400' :
-                              'bg-zinc-700 text-zinc-400'
+                              'bg-muted text-muted-foreground'
                             }`}>
                               {item.sentiment}
                             </span>
@@ -626,7 +623,7 @@ export default function Home() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleLoadFromHistory(item)}
-                          className="border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800"
+                          className="border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                         >
                           View
                         </Button>
@@ -634,7 +631,7 @@ export default function Home() {
                           variant="ghost"
                           size="sm"
                           onClick={() => removeFromHistory(item.id)}
-                          className="text-zinc-500 hover:text-red-400"
+                          className="text-muted-foreground hover:text-red-400"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -648,10 +645,10 @@ export default function Home() {
 
           <TabsContent value="bookmarks" className="mt-6">
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-white">Bookmarks</h2>
+              <h2 className="text-xl font-bold text-foreground">Bookmarks</h2>
 
               {bookmarks.length === 0 ? (
-                <div className="text-center py-12 text-zinc-500">
+                <div className="text-center py-12 text-muted-foreground">
                   <Bookmark className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>No bookmarks yet</p>
                   <p className="text-sm mt-1">Save companies to quickly access them later</p>
@@ -663,8 +660,8 @@ export default function Home() {
                     return (
                       <div
                         key={item.id}
-                        className={`flex items-center justify-between p-4 bg-zinc-900/50 border rounded-xl hover:border-zinc-700 transition-colors ${
-                          stale ? 'border-amber-500/30' : 'border-zinc-800'
+                        className={`flex items-center justify-between p-4 bg-card/50 border rounded-xl hover:border-input transition-colors ${
+                          stale ? 'border-amber-500/30' : 'border-border'
                         }`}
                       >
                         <div className="flex items-center gap-4">
@@ -678,8 +675,8 @@ export default function Home() {
                             )}
                           </div>
                           <div>
-                            <h3 className="font-medium text-white">{item.companyName}</h3>
-                            <div className="flex items-center gap-2 text-sm text-zinc-500 mt-1">
+                            <h3 className="font-medium text-foreground">{item.companyName}</h3>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                               <Clock className="w-3 h-3" />
                               <span className={stale ? 'text-amber-400' : ''}>
                                 {getRelativeTime(item.timestamp)}
@@ -687,11 +684,11 @@ export default function Home() {
                               {stale && (
                                 <span className="text-amber-400 text-xs">(outdated)</span>
                               )}
-                              <span className="text-zinc-600">•</span>
+                              <span className="text-border">•</span>
                               <span className={`text-xs px-1.5 py-0.5 rounded ${
                                 item.sentiment === 'BULLISH' ? 'bg-emerald-500/20 text-emerald-400' :
                                 item.sentiment === 'BEARISH' ? 'bg-red-500/20 text-red-400' :
-                                'bg-zinc-700 text-zinc-400'
+                                'bg-muted text-muted-foreground'
                               }`}>
                                 {item.sentiment}
                               </span>
@@ -721,7 +718,7 @@ export default function Home() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleLoadFromBookmark(item)}
-                            className="border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800"
+                            className="border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                           >
                             View
                           </Button>
@@ -732,7 +729,7 @@ export default function Home() {
                               removeBookmark(item.id);
                               toast.success('Removed from bookmarks');
                             }}
-                            className="text-zinc-500 hover:text-red-400"
+                            className="text-muted-foreground hover:text-red-400"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -747,8 +744,8 @@ export default function Home() {
         </Tabs>
       </main>
 
-      <footer className="border-t border-zinc-800 mt-12">
-        <div className="max-w-7xl mx-auto px-4 py-6 text-center text-zinc-600 text-sm">
+      <footer className="border-t border-border mt-12">
+        <div className="max-w-7xl mx-auto px-4 py-6 text-center text-muted-foreground text-sm">
           MarketPulse - Corporate Intelligence Platform powered by AI
         </div>
       </footer>
@@ -776,16 +773,16 @@ export default function Home() {
 
       {/* Cache Confirmation Dialog */}
       <Dialog open={showCacheDialog} onOpenChange={setShowCacheDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+        <DialogContent className="bg-card border-border text-foreground max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg">
               <Users className="w-5 h-5 text-blue-400" />
               Analysis Already Exists
             </DialogTitle>
-            <DialogDescription className="text-zinc-400 mt-2">
+            <DialogDescription className="text-muted-foreground mt-2">
               {pendingCacheInfo && (
                 <>
-                  <strong className="text-white">{pendingSearch?.company}</strong> was analyzed{' '}
+                  <strong className="text-foreground">{pendingSearch?.company}</strong> was analyzed{' '}
                   {pendingCacheInfo.ageMinutes < 60
                     ? `${pendingCacheInfo.ageMinutes} minutes ago`
                     : pendingCacheInfo.ageMinutes < 1440
@@ -813,7 +810,7 @@ export default function Home() {
                 setPendingSearch(null);
                 setPendingCacheInfo(null);
               }}
-              className="border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800 flex items-center gap-2"
+              className="border-border text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-2"
             >
               <Zap className="w-4 h-4" />
               Run Fresh Analysis

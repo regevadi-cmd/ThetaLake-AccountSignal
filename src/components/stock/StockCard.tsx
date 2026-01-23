@@ -99,7 +99,7 @@ function StockChart({
 }) {
   if (!data || data.length < 2) {
     return (
-      <div className="w-full h-[200px] flex items-center justify-center text-zinc-500 text-sm">
+      <div className="w-full h-[200px] flex items-center justify-center text-muted-foreground text-sm">
         Insufficient data for chart
       </div>
     );
@@ -173,7 +173,7 @@ function StockChart({
             y1={label.y}
             x2={padding.left + chartWidth}
             y2={label.y}
-            stroke="#3f3f46"
+            className="stroke-border"
             strokeWidth="1"
             strokeDasharray="4,4"
             opacity="0.5"
@@ -224,7 +224,7 @@ function StockChart({
             key={`y-label-${i}`}
             x={padding.left + chartWidth + 8}
             y={label.y + 4}
-            fill="#71717a"
+            className="fill-muted-foreground"
             fontSize="11"
             fontFamily="system-ui"
           >
@@ -238,7 +238,7 @@ function StockChart({
             key={`x-label-${i}`}
             x={label.x}
             y={height - 8}
-            fill="#71717a"
+            className="fill-muted-foreground"
             fontSize="10"
             fontFamily="system-ui"
             textAnchor="middle"
@@ -363,15 +363,15 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
     return (
       <SectionCard title="Stock Quote" icon={TrendingUp} color="emerald" className="xl:col-span-2">
         <div className="space-y-4">
-          <div className="flex items-center gap-2 text-zinc-400 text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <Search className="w-4 h-4 animate-pulse" />
             {searching ? `Searching for ${companyName || 'ticker'}...` : 'Loading stock data...'}
           </div>
-          <Skeleton className="h-12 w-32 bg-zinc-800" />
-          <Skeleton className="h-[200px] w-full bg-zinc-800" />
+          <Skeleton className="h-12 w-32 bg-muted" />
+          <Skeleton className="h-[200px] w-full bg-muted" />
           <div className="grid grid-cols-2 gap-4">
-            <Skeleton className="h-8 bg-zinc-800" />
-            <Skeleton className="h-8 bg-zinc-800" />
+            <Skeleton className="h-8 bg-muted" />
+            <Skeleton className="h-8 bg-muted" />
           </div>
         </div>
       </SectionCard>
@@ -383,29 +383,29 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
     return (
       <SectionCard title="Stock Quote" icon={TrendingUp} color="emerald" className="xl:col-span-2">
         <div className="py-2">
-          <div className="text-zinc-400 text-sm mb-4">
-            Multiple tickers found for <span className="text-white font-medium">{companyName}</span>. Select one:
+          <div className="text-muted-foreground text-sm mb-4">
+            Multiple tickers found for <span className="text-foreground font-medium">{companyName}</span>. Select one:
           </div>
           <div className="space-y-2">
             {tickerOptions.map((option) => (
               <button
                 key={option.symbol}
                 onClick={() => handleSelectTicker(option.symbol)}
-                className="w-full flex items-center justify-between p-3 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 hover:border-emerald-500/50 rounded-lg transition-colors group"
+                className="w-full flex items-center justify-between p-3 bg-accent/50 hover:bg-accent border border-input hover:border-emerald-500/50 rounded-lg transition-colors group"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-emerald-400 font-bold text-lg">{option.symbol}</span>
                   <div className="text-left">
-                    <div className="text-zinc-200 text-sm">{option.name}</div>
-                    <div className="text-zinc-500 text-xs">{option.exchange} · {option.type}</div>
+                    <div className="text-foreground/90 text-sm">{option.name}</div>
+                    <div className="text-muted-foreground text-xs">{option.exchange} · {option.type}</div>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-emerald-400 transition-colors" />
+                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-emerald-400 transition-colors" />
               </button>
             ))}
           </div>
-          <div className="mt-4 pt-4 border-t border-zinc-800">
-            <div className="text-zinc-500 text-xs mb-2">Or enter a different ticker:</div>
+          <div className="mt-4 pt-4 border-t border-border">
+            <div className="text-muted-foreground text-xs mb-2">Or enter a different ticker:</div>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -413,12 +413,12 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
                 onChange={(e) => setManualTicker(e.target.value.toUpperCase())}
                 onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()}
                 placeholder="e.g. AAPL"
-                className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500 focus:outline-none focus:border-emerald-500"
+                className="flex-1 px-3 py-2 bg-accent border border-input rounded-lg text-foreground text-sm placeholder-muted-foreground focus:outline-none focus:border-emerald-500"
               />
               <button
                 onClick={handleManualSearch}
                 disabled={loading || !manualTicker.trim()}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-white text-sm rounded-lg transition-colors"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-muted disabled:text-muted-foreground text-white text-sm rounded-lg transition-colors"
               >
                 Load
               </button>
@@ -437,7 +437,7 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
           {error && (
             <div className="text-red-400 text-sm mb-4 text-center">{error}</div>
           )}
-          <div className="text-zinc-400 text-sm mb-3 text-center">
+          <div className="text-muted-foreground text-sm mb-3 text-center">
             {companyName ? `Enter stock ticker for ${companyName}` : 'Enter a stock ticker symbol'}
           </div>
           <div className="flex gap-2 max-w-xs mx-auto">
@@ -447,17 +447,17 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
               onChange={(e) => setManualTicker(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()}
               placeholder="e.g. AAPL, MSFT"
-              className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-500 focus:outline-none focus:border-emerald-500"
+              className="flex-1 px-3 py-2 bg-accent border border-input rounded-lg text-foreground text-sm placeholder-muted-foreground focus:outline-none focus:border-emerald-500"
             />
             <button
               onClick={handleManualSearch}
               disabled={loading || !manualTicker.trim()}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-white text-sm rounded-lg transition-colors"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-muted disabled:text-muted-foreground text-white text-sm rounded-lg transition-colors"
             >
               {loading ? 'Loading...' : 'Load'}
             </button>
           </div>
-          <div className="text-zinc-600 text-xs mt-3 text-center">
+          <div className="text-muted-foreground/70 text-xs mt-3 text-center">
             Common tickers: AAPL, MSFT, GOOGL, AMZN, META, TSLA, NVDA
           </div>
         </div>
@@ -476,12 +476,12 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
         {/* Header: Ticker, Price, Market State */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl font-bold text-white">{data.ticker}</span>
+            <span className="text-2xl font-bold text-foreground">{data.ticker}</span>
             <span
               className={`text-xs px-2 py-1 rounded ${
                 data.marketState === 'REGULAR'
                   ? 'bg-emerald-500/20 text-emerald-400'
-                  : 'bg-zinc-700 text-zinc-400'
+                  : 'bg-muted text-muted-foreground'
               }`}
             >
               {data.marketState === 'REGULAR' ? 'Market Open' : 'Market Closed'}
@@ -489,7 +489,7 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
           </div>
           <button
             onClick={() => fetchData(activeTicker)}
-            className="text-zinc-500 hover:text-zinc-300 p-2 rounded hover:bg-zinc-800 transition-colors"
+            className="text-muted-foreground hover:text-foreground p-2 rounded hover:bg-accent transition-colors"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -499,7 +499,7 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
         {/* Current Price & Change */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
           <div>
-            <div className="text-3xl sm:text-4xl font-bold text-white">
+            <div className="text-3xl sm:text-4xl font-bold text-foreground">
               {formatCurrency(data.price, data.currency)}
             </div>
             <div className={`flex flex-wrap items-center gap-1 sm:gap-2 mt-1 ${isTodayPositive ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -511,17 +511,17 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
               <span className="font-semibold text-sm sm:text-base">
                 {isTodayPositive ? '+' : ''}{formatCurrency(data.change, data.currency)} ({isTodayPositive ? '+' : ''}{data.changePercent.toFixed(2)}%)
               </span>
-              <span className="text-zinc-500 text-xs sm:text-sm">Today</span>
+              <span className="text-muted-foreground text-xs sm:text-sm">Today</span>
             </div>
           </div>
           <div className="text-left sm:text-right">
-            <div className="text-zinc-500 text-xs">Prev Close</div>
-            <div className="text-zinc-300 text-sm sm:text-base">{formatCurrency(data.previousClose, data.currency)}</div>
+            <div className="text-muted-foreground text-xs">Prev Close</div>
+            <div className="text-foreground/80 text-sm sm:text-base">{formatCurrency(data.previousClose, data.currency)}</div>
           </div>
         </div>
 
         {/* Time Range Selector */}
-        <div className="flex items-center gap-0.5 sm:gap-1 bg-zinc-900/50 rounded-lg p-1 overflow-x-auto">
+        <div className="flex items-center gap-0.5 sm:gap-1 bg-card/50 rounded-lg p-1 overflow-x-auto">
           {TIME_RANGES.map((range) => (
             <button
               key={range.value}
@@ -530,7 +530,7 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
               className={`flex-1 min-w-[36px] px-2 sm:px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                 selectedRange === range.value
                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
               }`}
             >
               {range.label}
@@ -539,9 +539,9 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
         </div>
 
         {/* Chart */}
-        <div className="bg-zinc-900/30 rounded-lg p-4">
+        <div className="bg-card/30 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <div className="text-xs text-zinc-400 uppercase tracking-wide">
+            <div className="text-xs text-muted-foreground uppercase tracking-wide">
               Price History ({data.history.rangeLabel})
             </div>
             <div className={`text-sm font-medium ${isRangePositive ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -550,7 +550,7 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
           </div>
           {chartLoading ? (
             <div className="h-[200px] flex items-center justify-center">
-              <RefreshCw className="w-6 h-6 text-zinc-500 animate-spin" />
+              <RefreshCw className="w-6 h-6 text-muted-foreground animate-spin" />
             </div>
           ) : data.history.prices.length >= 2 ? (
             <StockChart
@@ -561,7 +561,7 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
               currency={data.currency}
             />
           ) : (
-            <div className="h-[200px] flex items-center justify-center text-zinc-500 text-sm">
+            <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
               Insufficient historical data available
             </div>
           )}
@@ -569,38 +569,38 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
 
         {/* Key Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-sm">
-          <div className="bg-zinc-900/30 rounded-lg p-2 sm:p-3">
-            <div className="text-zinc-500 text-xs">Open</div>
-            <div className="text-zinc-200 font-medium mt-1 text-xs sm:text-sm">{formatCurrency(data.dayOpen, data.currency)}</div>
+          <div className="bg-card/30 rounded-lg p-2 sm:p-3">
+            <div className="text-muted-foreground text-xs">Open</div>
+            <div className="text-foreground/90 font-medium mt-1 text-xs sm:text-sm">{formatCurrency(data.dayOpen, data.currency)}</div>
           </div>
-          <div className="bg-zinc-900/30 rounded-lg p-2 sm:p-3">
-            <div className="text-zinc-500 text-xs">Volume</div>
-            <div className="text-zinc-200 font-medium mt-1 text-xs sm:text-sm">{formatNumber(data.volume)}</div>
+          <div className="bg-card/30 rounded-lg p-2 sm:p-3">
+            <div className="text-muted-foreground text-xs">Volume</div>
+            <div className="text-foreground/90 font-medium mt-1 text-xs sm:text-sm">{formatNumber(data.volume)}</div>
           </div>
-          <div className="bg-zinc-900/30 rounded-lg p-2 sm:p-3">
-            <div className="text-zinc-500 text-xs">Avg Vol</div>
-            <div className="text-zinc-200 font-medium mt-1 text-xs sm:text-sm">{formatNumber(data.avgVolume)}</div>
+          <div className="bg-card/30 rounded-lg p-2 sm:p-3">
+            <div className="text-muted-foreground text-xs">Avg Vol</div>
+            <div className="text-foreground/90 font-medium mt-1 text-xs sm:text-sm">{formatNumber(data.avgVolume)}</div>
           </div>
-          <div className="bg-zinc-900/30 rounded-lg p-2 sm:p-3">
-            <div className="text-zinc-500 text-xs">Day High</div>
-            <div className="text-zinc-200 font-medium mt-1 text-xs sm:text-sm">{formatCurrency(data.dayHigh, data.currency)}</div>
+          <div className="bg-card/30 rounded-lg p-2 sm:p-3">
+            <div className="text-muted-foreground text-xs">Day High</div>
+            <div className="text-foreground/90 font-medium mt-1 text-xs sm:text-sm">{formatCurrency(data.dayHigh, data.currency)}</div>
           </div>
         </div>
 
         {/* Price Ranges */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-sm">
-          <div className="bg-zinc-900/30 rounded-lg p-2 sm:p-3">
-            <div className="text-zinc-500 text-xs">Day Range</div>
-            <div className="text-zinc-200 font-medium mt-1 text-xs sm:text-sm">
+          <div className="bg-card/30 rounded-lg p-2 sm:p-3">
+            <div className="text-muted-foreground text-xs">Day Range</div>
+            <div className="text-foreground/90 font-medium mt-1 text-xs sm:text-sm">
               {formatCurrency(data.dayLow, data.currency)} - {formatCurrency(data.dayHigh, data.currency)}
             </div>
-            <div className="mt-2 h-1.5 bg-zinc-800 rounded-full overflow-hidden relative">
+            <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden relative">
               <div
-                className="h-full bg-gradient-to-r from-red-500 via-zinc-400 to-emerald-500"
+                className="h-full bg-gradient-to-r from-red-500 via-muted-foreground to-emerald-500"
                 style={{ width: '100%' }}
               />
               <div
-                className="absolute top-0 w-1 h-1.5 bg-white rounded-full"
+                className="absolute top-0 w-1 h-1.5 bg-foreground rounded-full"
                 style={{
                   left: `${Math.max(0, Math.min(100, ((data.price - data.dayLow) / (data.dayHigh - data.dayLow || 1)) * 100))}%`,
                   transform: 'translateX(-50%)'
@@ -608,18 +608,18 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
               />
             </div>
           </div>
-          <div className="bg-zinc-900/30 rounded-lg p-2 sm:p-3">
-            <div className="text-zinc-500 text-xs">52 Week Range</div>
-            <div className="text-zinc-200 font-medium mt-1 text-xs sm:text-sm">
+          <div className="bg-card/30 rounded-lg p-2 sm:p-3">
+            <div className="text-muted-foreground text-xs">52 Week Range</div>
+            <div className="text-foreground/90 font-medium mt-1 text-xs sm:text-sm">
               {formatCurrency(data.fiftyTwoWeekLow, data.currency)} - {formatCurrency(data.fiftyTwoWeekHigh, data.currency)}
             </div>
-            <div className="mt-2 h-1.5 bg-zinc-800 rounded-full overflow-hidden relative">
+            <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden relative">
               <div
-                className="h-full bg-gradient-to-r from-red-500 via-zinc-400 to-emerald-500"
+                className="h-full bg-gradient-to-r from-red-500 via-muted-foreground to-emerald-500"
                 style={{ width: '100%' }}
               />
               <div
-                className="absolute top-0 w-1 h-1.5 bg-white rounded-full"
+                className="absolute top-0 w-1 h-1.5 bg-foreground rounded-full"
                 style={{
                   left: `${Math.max(0, Math.min(100, ((data.price - data.fiftyTwoWeekLow) / (data.fiftyTwoWeekHigh - data.fiftyTwoWeekLow || 1)) * 100))}%`,
                   transform: 'translateX(-50%)'

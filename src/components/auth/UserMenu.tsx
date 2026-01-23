@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogOut, Settings, Shield, Info } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface UserMenuProps {
   onSettingsClick?: () => void;
@@ -39,10 +40,10 @@ export function UserMenu({ onSettingsClick, onAboutClick }: UserMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-zinc-950">
-          <Avatar className="h-8 w-8 border border-zinc-700">
+        <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-background">
+          <Avatar className="h-8 w-8 border border-border">
             <AvatarImage src={profile.avatarUrl || undefined} alt={profile.displayName || 'User'} />
-            <AvatarFallback className="bg-zinc-800 text-white text-sm">
+            <AvatarFallback className="bg-muted text-foreground text-sm">
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -53,12 +54,12 @@ export function UserMenu({ onSettingsClick, onAboutClick }: UserMenuProps) {
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 bg-zinc-900 border-zinc-800">
+      <DropdownMenuContent align="end" className="w-56">
         <div className="px-3 py-2">
-          <p className="text-sm font-medium text-white truncate">
+          <p className="text-sm font-medium text-foreground truncate">
             {profile.displayName || 'User'}
           </p>
-          <p className="text-xs text-zinc-400 truncate">{profile.email}</p>
+          <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
           {isAdmin && (
             <div className="flex items-center gap-1 mt-1">
               <Shield className="w-3 h-3 text-amber-400" />
@@ -66,32 +67,36 @@ export function UserMenu({ onSettingsClick, onAboutClick }: UserMenuProps) {
             </div>
           )}
         </div>
-        <DropdownMenuSeparator className="bg-zinc-800" />
+        <DropdownMenuSeparator />
         {isAdmin && onSettingsClick && (
           <>
             <DropdownMenuItem
               onClick={onSettingsClick}
-              className="text-zinc-300 focus:text-white focus:bg-zinc-800 cursor-pointer"
+              className="cursor-pointer"
             >
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-zinc-800" />
+            <DropdownMenuSeparator />
           </>
         )}
         {onAboutClick && (
           <DropdownMenuItem
             onClick={onAboutClick}
-            className="text-zinc-300 focus:text-white focus:bg-zinc-800 cursor-pointer"
+            className="cursor-pointer"
           >
             <Info className="w-4 h-4 mr-2" />
             About
           </DropdownMenuItem>
         )}
-        <DropdownMenuSeparator className="bg-zinc-800" />
+        <DropdownMenuSeparator />
+        <div className="px-1 py-1">
+          <ThemeToggle />
+        </div>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleSignOut}
-          className="text-zinc-300 focus:text-white focus:bg-zinc-800 cursor-pointer"
+          className="cursor-pointer"
         >
           <LogOut className="w-4 h-4 mr-2" />
           Sign out

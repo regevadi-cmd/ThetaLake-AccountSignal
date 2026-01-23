@@ -208,7 +208,7 @@ export function Header({
   const currentModelInfo = currentProviderInfo.models.find(m => m.id === selectedModel);
 
   return (
-    <header className="sticky top-0 z-40 bg-zinc-950/90 backdrop-blur-lg border-b border-zinc-800">
+    <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-lg border-b border-border">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
         {/* Mobile: Stack vertically, Desktop: Single row */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -220,8 +220,8 @@ export function Header({
                 <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold text-white">MarketPulse</h1>
-                <p className="text-xs text-zinc-500 hidden sm:block">Corporate Intelligence</p>
+                <h1 className="text-lg sm:text-xl font-bold text-foreground">MarketPulse</h1>
+                <p className="text-xs text-muted-foreground hidden sm:block">Corporate Intelligence</p>
               </div>
             </div>
 
@@ -241,7 +241,7 @@ export function Header({
           <form onSubmit={handleSubmit} className="flex-1 sm:max-w-2xl">
             <div className="relative flex gap-2">
               <div className="relative flex-1" ref={searchRef}>
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-zinc-500 z-10" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground z-10" />
                 <Input
                   ref={inputRef}
                   type="text"
@@ -256,14 +256,14 @@ export function Header({
                   onKeyDown={handleKeyDown}
                   onFocus={() => suggestions.length > 0 && !selectedCompany && setShowSuggestions(true)}
                   placeholder="Search company..."
-                  className="pl-9 sm:pl-10 h-10 sm:h-11 text-sm sm:text-base bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-emerald-500"
+                  className="pl-9 sm:pl-10 h-10 sm:h-11 text-sm sm:text-base bg-card border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-emerald-500"
                 />
 
                 {/* Company Suggestions Dropdown */}
                 {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl z-50 overflow-hidden max-h-[60vh] overflow-y-auto">
-                    <div className="text-xs text-emerald-400 px-3 py-2 border-b border-zinc-800 bg-emerald-500/10 sticky top-0">
-                      👆 Tap to select:
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-input rounded-lg shadow-xl z-50 overflow-hidden max-h-[60vh] overflow-y-auto">
+                    <div className="text-xs text-emerald-400 px-3 py-2 border-b border-border bg-emerald-500/10 sticky top-0">
+                      Tap to select:
                     </div>
                     {suggestions.map((suggestion, index) => (
                       <button
@@ -271,11 +271,11 @@ export function Header({
                         type="button"
                         onClick={() => handleSelectSuggestion(suggestion)}
                         className={`w-full flex items-center justify-between px-3 py-3 sm:py-2.5 text-left transition-colors ${
-                          suggestion.isCustomSearch ? 'border-t border-zinc-800' : ''
+                          suggestion.isCustomSearch ? 'border-t border-border' : ''
                         } ${
                           index === selectedIndex
-                            ? 'bg-emerald-500/20 text-white'
-                            : 'hover:bg-zinc-800 active:bg-zinc-700 text-zinc-300'
+                            ? 'bg-emerald-500/20 text-foreground'
+                            : 'hover:bg-accent active:bg-muted text-muted-foreground'
                         }`}
                       >
                         <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -289,7 +289,7 @@ export function Header({
                             <span className="text-emerald-400 text-sm flex-shrink-0">{suggestion.symbol}</span>
                           )}
                         </div>
-                        <span className={`text-xs ml-2 flex-shrink-0 hidden sm:inline ${suggestion.isCustomSearch ? 'text-cyan-400/70' : 'text-zinc-500'}`}>
+                        <span className={`text-xs ml-2 flex-shrink-0 hidden sm:inline ${suggestion.isCustomSearch ? 'text-cyan-400/70' : 'text-muted-foreground'}`}>
                           {suggestion.description}
                         </span>
                       </button>
@@ -303,26 +303,26 @@ export function Header({
                 <Button
                   variant="outline"
                   onClick={onSettingsClick}
-                  className="hidden md:flex bg-zinc-900 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white justify-between gap-2"
+                  className="hidden md:flex bg-card border-input text-muted-foreground hover:bg-accent hover:text-foreground justify-between gap-2"
                 >
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{currentProviderInfo.name}</span>
-                    <span className="text-zinc-500">•</span>
-                    <span className="text-zinc-400">{currentModelInfo?.name || selectedModel}</span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-muted-foreground">{currentModelInfo?.name || selectedModel}</span>
                   </div>
                   {currentProviderInfo.supportsWebGrounding && (
                     <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" title="Web search" />
                   )}
-                  <Settings className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+                  <Settings className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 </Button>
               )}
 
               {/* Provider/Model Display (non-admin - read only) - Hidden on mobile */}
               {!isAdmin && isAuthenticated && (
-                <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-sm">
-                  <span className="font-medium text-zinc-300">{currentProviderInfo.name}</span>
-                  <span className="text-zinc-500">•</span>
-                  <span className="text-zinc-400">{currentModelInfo?.name || selectedModel}</span>
+                <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-card border border-input rounded-md text-sm">
+                  <span className="font-medium text-muted-foreground">{currentProviderInfo.name}</span>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-muted-foreground">{currentModelInfo?.name || selectedModel}</span>
                   {currentProviderInfo.supportsWebGrounding && (
                     <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" title="Web search" />
                   )}
