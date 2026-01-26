@@ -193,11 +193,37 @@ const FAKE_NAMES = [
   'example person', 'sample name', 'test user', 'placeholder'
 ];
 
+// Words/phrases that look like names but aren't (titles, places, common headline words)
+const NOT_NAMES = [
+  // Job titles that look like names
+  'vice president', 'chief executive', 'chief operating', 'chief financial',
+  'chief technology', 'chief marketing', 'chief information', 'chief product',
+  'chief revenue', 'chief people', 'chief strategy', 'chief legal',
+  'managing director', 'general manager', 'senior director', 'executive director',
+  'senior vice', 'executive vice', 'group vice', 'regional vice',
+  'board member', 'board director', 'advisory board',
+  // Common headline fragments
+  'white house', 'wall street', 'silicon valley', 'new york', 'los angeles',
+  'san francisco', 'announces new', 'names new', 'appoints new', 'hires new',
+  'promoted to', 'steps down', 'steps up', 'takes over', 'joins as',
+  'company announces', 'firm announces', 'corporation announces',
+  // Partial phrases
+  'adviser to', 'advisor to', 'counsel to', 'assistant to',
+  'head of', 'director of', 'manager of', 'leader of',
+  // Company name patterns
+  'inc announces', 'corp announces', 'llc announces', 'ltd announces',
+];
+
 function isValidName(name: string): boolean {
   const nameLower = name.toLowerCase().trim();
 
   // Check against fake names
   if (FAKE_NAMES.some(fake => nameLower === fake || nameLower.includes(fake))) {
+    return false;
+  }
+
+  // Check against non-name phrases (titles, places, headline words)
+  if (NOT_NAMES.some(phrase => nameLower === phrase || nameLower.startsWith(phrase) || nameLower.endsWith(phrase))) {
     return false;
   }
 
@@ -209,6 +235,22 @@ function isValidName(name: string): boolean {
 
   // Each part should start with capital letter
   if (!parts.every(p => /^[A-Z]/.test(p))) {
+    return false;
+  }
+
+  // First name should be at least 2 characters (catches "A Smith" type errors)
+  if (parts[0].length < 2) {
+    return false;
+  }
+
+  // Last name should be at least 2 characters
+  if (parts[parts.length - 1].length < 2) {
+    return false;
+  }
+
+  // Reject if any part is a common title word
+  const titleWords = ['chief', 'vice', 'president', 'director', 'officer', 'manager', 'executive', 'senior', 'head', 'board', 'adviser', 'advisor', 'counsel', 'assistant', 'announces', 'appoints', 'names', 'hires', 'promoted', 'appointed'];
+  if (parts.some(p => titleWords.includes(p.toLowerCase()))) {
     return false;
   }
 
