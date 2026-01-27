@@ -262,6 +262,7 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
   const [showOptions, setShowOptions] = useState(false);
   const [selectedRange, setSelectedRange] = useState<TimeRange>('1y');
   const [chartLoading, setChartLoading] = useState(false);
+  const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
   // Check if company is known to be private
   const isPrivate = companyInfo && (
@@ -310,6 +311,7 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
       const stockData = await response.json();
       setData(stockData);
       setActiveTicker(tickerToFetch);
+      setLastFetched(new Date());
     } catch (err) {
       setError('Unable to load stock data');
       console.error('Stock fetch error:', err);
@@ -487,13 +489,22 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo }: S
               {data.marketState === 'REGULAR' ? 'Market Open' : 'Market Closed'}
             </span>
           </div>
-          <button
-            onClick={() => fetchData(activeTicker)}
-            className="text-muted-foreground hover:text-foreground p-2 rounded hover:bg-accent transition-colors"
-            title="Refresh"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
+          <div className="flex items-center gap-2">
+            {lastFetched && (
+              <span className="text-muted-foreground text-xs hidden sm:inline">
+                {lastFetched.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+              </span>
+            )}
+            <button
+              onClick={() => fetchData(activeTicker)}
+              disabled={loading || chartLoading}
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-emerald-500 px-2 py-1.5 rounded-lg hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/30 transition-colors disabled:opacity-50"
+              title="Refresh stock quote"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading || chartLoading ? 'animate-spin' : ''}`} />
+              <span className="text-xs font-medium hidden sm:inline">Refresh</span>
+            </button>
+          </div>
         </div>
 
         {/* Current Price & Change */}
