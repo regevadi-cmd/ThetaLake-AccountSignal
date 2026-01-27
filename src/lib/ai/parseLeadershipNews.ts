@@ -24,6 +24,75 @@ const SKIP_SOURCES = [
 ];
 
 /**
+ * Extract date from article title or content
+ */
+function extractDate(title: string, content: string): string | undefined {
+  const text = `${title} ${content}`;
+
+  // Common date patterns
+  const patterns = [
+    // "January 15, 2024" or "Jan 15, 2024"
+    /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2},?\s+20\d{2}\b/i,
+    // "15 January 2024" or "15 Jan 2024"
+    /\b\d{1,2}\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+20\d{2}\b/i,
+    // "2024-01-15" ISO format
+    /\b20\d{2}-\d{2}-\d{2}\b/,
+    // "01/15/2024" or "15/01/2024"
+    /\b\d{1,2}\/\d{1,2}\/20\d{2}\b/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return match[0];
+    }
+  }
+
+  // Try to extract just month and year
+  const monthYearMatch = text.match(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+20\d{2}\b/i);
+  if (monthYearMatch) {
+    return monthYearMatch[0];
+  }
+
+  return undefined;
+}
+
+/**
+ * Normalize title for deduplication comparison
+ */
+function normalizeTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Check if two titles are similar (for deduplication)
+ */
+function titlesSimilar(title1: string, title2: string): boolean {
+  const norm1 = normalizeTitle(title1);
+  const norm2 = normalizeTitle(title2);
+
+  // Exact match after normalization
+  if (norm1 === norm2) return true;
+
+  // One contains the other (for shortened versions)
+  if (norm1.includes(norm2) || norm2.includes(norm1)) return true;
+
+  // Check word overlap (Jaccard similarity > 0.6)
+  const words1 = new Set(norm1.split(' ').filter(w => w.length > 2));
+  const words2 = new Set(norm2.split(' ').filter(w => w.length > 2));
+  const intersection = [...words1].filter(w => words2.has(w)).length;
+  const union = new Set([...words1, ...words2]).size;
+
+  if (union > 0 && intersection / union > 0.6) return true;
+
+  return false;
+}
+
+/**
  * Convert leadership news articles to displayable items
  * Shows article headlines with links - more reliable than regex name parsing
  * Focuses on last 5 years from reputable sources
@@ -33,6 +102,7 @@ export function parseLeadershipArticles(
   _companyName: string
 ): LeadershipChangeItem[] {
   const seenUrls = new Set<string>();
+  const seenTitles: string[] = [];
 
   // Sort articles by source reputation (reputable sources first)
   const sortedArticles = [...articles].sort((a, b) => {
@@ -51,11 +121,23 @@ export function parseLeadershipArticles(
       continue;
     }
 
-    // Skip duplicates
+    // Skip URL duplicates
     if (seenUrls.has(article.url)) {
       continue;
     }
     seenUrls.add(article.url);
+
+    // Clean title - remove site name suffixes
+    const title = article.title
+      .replace(/\s*[-|]\s*(Reuters|Bloomberg|CNBC|Forbes|WSJ|Yahoo Finance|Business Wire|PR Newswire).*$/i, '')
+      .replace(/\s*[-|]\s*[A-Za-z]+\.[a-z]+$/i, '')
+      .trim();
+
+    // Skip if title is too similar to one we already have (content deduplication)
+    if (seenTitles.some(seen => titlesSimilar(seen, title))) {
+      continue;
+    }
+    seenTitles.push(title);
 
     // Extract source hostname
     let source = '';
@@ -65,17 +147,15 @@ export function parseLeadershipArticles(
       source = 'Source';
     }
 
-    // Clean title - remove site name suffixes
-    const title = article.title
-      .replace(/\s*[-|]\s*(Reuters|Bloomberg|CNBC|Forbes|WSJ|Yahoo Finance|Business Wire|PR Newswire).*$/i, '')
-      .replace(/\s*[-|]\s*[A-Za-z]+\.[a-z]+$/i, '')
-      .trim();
+    // Extract date from article
+    const date = extractDate(article.title, article.content || '');
 
     // Use article title as the display, content as summary
     results.push({
       name: title,
       role: article.content?.substring(0, 180) || '',
       changeType: 'appointed',
+      date,
       url: article.url,
       source
     });
