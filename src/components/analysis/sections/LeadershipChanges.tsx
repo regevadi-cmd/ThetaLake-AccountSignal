@@ -32,9 +32,11 @@ export function LeadershipChanges({ changes }: LeadershipChangesProps) {
                       {change.role}
                     </p>
                   )}
-                  {change.source && (
+                  {(change.date || change.source) && (
                     <p className="text-blue-600/70 dark:text-blue-400/70 text-xs mt-1.5">
-                      {change.source}
+                      {change.date && change.source
+                        ? `${change.date} • ${change.source}`
+                        : change.date || change.source}
                     </p>
                   )}
                 </div>
