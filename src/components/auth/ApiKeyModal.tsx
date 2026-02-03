@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ExternalLink, Eye, EyeOff, Check, Settings, Key, Search, Cpu, Loader2, X, CheckCircle2, XCircle, Users, Trash2, Shield, User } from 'lucide-react';
+import { ExternalLink, Eye, EyeOff, Check, Settings, Key, Search, Cpu, Loader2, X, CheckCircle2, XCircle, Users, Trash2, Shield, User, DollarSign } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ProviderName, PROVIDER_INFO } from '@/types/analysis';
 import { WebSearchProvider } from '@/lib/hooks/useApiKeys';
+import { UsageCosts } from '@/components/admin/UsageCosts';
 
 interface SaveSettings {
   provider: ProviderName;
@@ -63,7 +64,7 @@ export function ApiKeyModal({
   const [webKey, setWebKey] = useState('');
   const [showWebKey, setShowWebKey] = useState(false);
   const [webSearchProvider, setWebSearchProvider] = useState<WebSearchProvider>(initialWebSearchProvider);
-  const [activeTab, setActiveTab] = useState<'provider' | 'websearch' | 'users'>('provider');
+  const [activeTab, setActiveTab] = useState<'provider' | 'websearch' | 'users' | 'usage'>('provider');
   const [testingKey, setTestingKey] = useState(false);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -285,6 +286,18 @@ export function ApiKeyModal({
           >
             <Users className="w-4 h-4" />
             <span>Users</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('usage')}
+            className={`flex-1 flex items-center justify-center gap-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+              activeTab === 'usage'
+                ? 'bg-zinc-700 text-white'
+                : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            <DollarSign className="w-4 h-4" />
+            <span className="hidden sm:inline">Usage</span>
+            <span className="sm:hidden">$</span>
           </button>
         </div>
 
@@ -789,6 +802,13 @@ export function ApiKeyModal({
             <div className="text-xs text-zinc-500 pt-2 border-t border-zinc-800">
               Total: {users.length} user{users.length !== 1 ? 's' : ''} ({users.filter(u => u.role === 'admin').length} admin{users.filter(u => u.role === 'admin').length !== 1 ? 's' : ''})
             </div>
+          </div>
+        )}
+
+        {/* Usage Tab */}
+        {activeTab === 'usage' && (
+          <div className="py-2">
+            <UsageCosts />
           </div>
         )}
 

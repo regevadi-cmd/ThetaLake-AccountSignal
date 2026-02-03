@@ -7,6 +7,7 @@ import { tavilySearchCompanyNews, tavilySearchCaseStudies, tavilySearchCompanyIn
 import { createClient } from '@/lib/supabase/server';
 import { parseLeadershipArticles } from '@/lib/ai/parseLeadershipNews';
 import { deduplicateRegulatoryEvents } from '@/lib/ai/parser';
+import { logUsage } from '@/lib/services/usageLogger';
 
 // Cache expiry: 24 hours (in minutes)
 const CACHE_EXPIRY_MINUTES = 24 * 60;
@@ -247,8 +248,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Create provider and execute analysis with optional model override
+    const startTime = Date.now();
     const aiProvider = createAIProvider(provider as ProviderName, apiKey, { model });
     const analysis = await aiProvider.analyzeCompany(companyName.trim());
+    const durationMs = Date.now() - startTime;
 
     // If we have web search data, merge it with the analysis results
     if (webSearchData) {
@@ -390,6 +393,23 @@ export async function POST(request: NextRequest) {
       // Don't fail the request if caching fails
       console.warn('Failed to cache analysis:', cacheError);
     }
+
+    // Log usage for cost tracking (non-blocking)
+    // Estimate prompt size: ~3000 chars for the template + company name
+    const estimatedPrompt = 'A'.repeat(3000 + companyName.length);
+    logUsage(supabase, {
+      userId: user?.id,
+      userEmail: user?.email,
+      companyName: companyName.trim(),
+      aiProvider: provider,
+      aiModel: model || PROVIDER_INFO[provider as ProviderName].defaultModel,
+      promptText: estimatedPrompt,
+      responseText: JSON.stringify(analysis),
+      searchProvider: webSearchUsed ? (useTavily ? 'tavily' : 'websearchapi') : 'none',
+      searchQueriesUsed: webSearchUsed ? 7 : 0, // 7 Tavily queries per analysis
+      cached: false,
+      durationMs,
+    }).catch(err => console.warn('Usage logging failed:', err));
 
     return NextResponse.json<AnalyzeResponse>({
       data: analysis,
