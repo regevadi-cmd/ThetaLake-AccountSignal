@@ -39,7 +39,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   perplexity_api_key: null,
   openai_model: 'gpt-4o',
   anthropic_model: 'claude-sonnet-4-20250514',
-  gemini_model: 'gemini-2.0-flash',
+  gemini_model: 'gemini-2.5-flash',
   perplexity_model: 'sonar-pro',
   web_search_provider: 'none',
   tavily_api_key: null,

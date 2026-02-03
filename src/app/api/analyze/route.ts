@@ -58,7 +58,7 @@ function getProviderModel(settings: ServerSettings, provider: ProviderName): str
   switch (provider) {
     case 'openai': return settings.openai_model || 'gpt-4o';
     case 'anthropic': return settings.anthropic_model || 'claude-sonnet-4-20250514';
-    case 'gemini': return settings.gemini_model || 'gemini-2.0-flash';
+    case 'gemini': return settings.gemini_model || 'gemini-2.5-flash';
     case 'perplexity': return settings.perplexity_model || 'sonar-pro';
     default: return 'gpt-4o';
   }

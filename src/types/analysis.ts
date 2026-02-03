@@ -106,12 +106,12 @@ export const PROVIDER_INFO: Record<ProviderName, ProviderInfo> = {
     keyUrl: 'https://aistudio.google.com/apikey',
     icon: 'sparkles',
     models: [
-      { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', description: 'Fast and efficient' },
-      { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite', description: 'Lightweight, fastest' },
-      { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', description: 'Most capable' },
-      { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', description: 'Balanced performance' }
+      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', description: 'Fast and intelligent (recommended)' },
+      { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', description: 'Fastest, low cost' },
+      { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', description: 'Most capable' },
+      { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', description: 'Legacy (retiring Mar 2026)' }
     ],
-    defaultModel: 'gemini-2.0-flash'
+    defaultModel: 'gemini-2.5-flash'
   },
   perplexity: {
     name: 'Perplexity',
