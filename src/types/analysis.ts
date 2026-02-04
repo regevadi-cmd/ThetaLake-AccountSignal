@@ -148,11 +148,11 @@ export const PROVIDER_INFO: Record<ProviderName, ProviderInfo> = {
     keyUrl: 'https://console.anthropic.com/settings/keys',
     icon: 'message-square',
     models: [
-      { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', description: 'Latest, most capable' },
-      { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet', description: 'Excellent balance' },
-      { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku', description: 'Fast and efficient' },
-      { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', description: 'Most powerful (older)' }
+      { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Best balance of intelligence and speed (recommended)' },
+      { id: 'claude-opus-4-5-20251101', name: 'Claude Opus 4.5', description: 'Most intelligent, complex reasoning' },
+      { id: 'claude-haiku-4-5-20251201', name: 'Claude Haiku 4.5', description: 'Fastest, near-frontier performance' },
+      { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', description: 'Previous generation' }
     ],
-    defaultModel: 'claude-sonnet-4-20250514'
+    defaultModel: 'claude-sonnet-4-5-20250929'
   }
 };

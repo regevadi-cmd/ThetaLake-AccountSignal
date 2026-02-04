@@ -4,6 +4,7 @@ import { AnalyzeRequest, AnalyzeResponse, ApiError, CacheMetadata } from '@/type
 import { ProviderName, PROVIDER_INFO, AnalysisResult } from '@/types/analysis';
 import { searchCompanyNews, searchCompanyCaseStudies, searchCompanyInfo, searchInvestorDocuments } from '@/lib/services/webSearch';
 import { tavilySearchCompanyNews, tavilySearchCaseStudies, tavilySearchCompanyInfo, tavilySearchInvestorDocs, tavilySearchCompetitorMentions, tavilySearchLeadershipChanges, tavilySearchRegulatoryEvents, CompetitorMention, RegulatoryEvent } from '@/lib/services/tavilySearch';
+import { claudeSearchCompanyNews, claudeSearchCaseStudies, claudeSearchCompanyInfo, claudeSearchInvestorDocs, claudeSearchLeadershipChanges } from '@/lib/services/claudeSearch';
 import { createClient } from '@/lib/supabase/server';
 import { parseLeadershipArticles } from '@/lib/ai/parseLeadershipNews';
 import { deduplicateRegulatoryEvents } from '@/lib/ai/parser';
@@ -182,11 +183,12 @@ export async function POST(request: NextRequest) {
 
     const providerInfo = PROVIDER_INFO[provider as ProviderName];
     const useTavily = !providerInfo.supportsWebGrounding && webSearchProvider === 'tavily' && !!tavilyApiKey;
+    const useClaudeSearch = !providerInfo.supportsWebGrounding && webSearchProvider === 'claude' && !!apiKey && provider === 'anthropic';
     const useWebSearchApi = !providerInfo.supportsWebGrounding && webSearchProvider === 'websearchapi' && !!webSearchApiKey;
-    const shouldUseWebSearch = useTavily || useWebSearchApi;
+    const shouldUseWebSearch = useTavily || useClaudeSearch || useWebSearchApi;
     let webSearchData = null;
     let webSearchError: string | null = null;
-    const webSearchProviderName = useTavily ? 'Tavily' : 'WebSearchAPI';
+    const webSearchProviderName = useTavily ? 'Tavily' : useClaudeSearch ? 'Claude' : 'WebSearchAPI';
 
     // If provider doesn't have native web grounding and we have a web search API key,
     // fetch real-time web data to augment the analysis
@@ -212,6 +214,23 @@ export async function POST(request: NextRequest) {
             competitorMentions: competitorMentionsResults,
             leadershipChanges: leadershipResults.map(r => ({ title: r.title, url: r.url, description: r.content })),
             regulatoryEvents: regulatoryResults
+          };
+        } else if (useClaudeSearch) {
+          // Use Claude web search (powered by Brave)
+          const [newsResults, caseStudyResults, infoResults, investorDocsResults, leadershipResults] = await Promise.all([
+            claudeSearchCompanyNews(companyName.trim(), apiKey),
+            claudeSearchCaseStudies(companyName.trim(), apiKey),
+            claudeSearchCompanyInfo(companyName.trim(), apiKey),
+            claudeSearchInvestorDocs(companyName.trim(), apiKey),
+            claudeSearchLeadershipChanges(companyName.trim(), apiKey)
+          ]);
+
+          webSearchData = {
+            news: newsResults.map(r => ({ title: r.title, url: r.url, description: r.content })),
+            caseStudies: caseStudyResults.map(r => ({ title: r.title, url: r.url, description: r.content })),
+            info: { sources: infoResults.sources.map(r => ({ title: r.title, url: r.url, description: r.content })) },
+            investorDocs: investorDocsResults.map(r => ({ title: r.title, url: r.url, description: r.content })),
+            leadershipChanges: leadershipResults.map(r => ({ title: r.title, url: r.url, description: r.content }))
           };
         } else {
           // Use WebSearchAPI for web search
@@ -405,7 +424,7 @@ export async function POST(request: NextRequest) {
       aiModel: model || PROVIDER_INFO[provider as ProviderName].defaultModel,
       promptText: estimatedPrompt,
       responseText: JSON.stringify(analysis),
-      searchProvider: webSearchUsed ? (useTavily ? 'tavily' : 'websearchapi') : 'none',
+      searchProvider: webSearchUsed ? (useTavily ? 'tavily' : useClaudeSearch ? 'claude' : 'websearchapi') : 'none',
       searchQueriesUsed: webSearchUsed ? 7 : 0, // 7 Tavily queries per analysis
       cached: false,
       durationMs,

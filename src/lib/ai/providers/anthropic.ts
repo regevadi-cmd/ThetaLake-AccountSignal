@@ -15,7 +15,7 @@ export class AnthropicProvider extends BaseAIProvider {
   }
 
   getDefaultModel(): string {
-    return 'claude-sonnet-4-20250514';
+    return 'claude-sonnet-4-5-20250929';
   }
 
   async analyzeCompany(companyName: string): Promise<AnalysisResult> {

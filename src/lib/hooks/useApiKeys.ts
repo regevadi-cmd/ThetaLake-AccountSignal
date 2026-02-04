@@ -10,7 +10,7 @@ const STORAGE_WEBSEARCH_KEY = 'marketpulse_websearch_apikey';
 const STORAGE_TAVILY_KEY = 'marketpulse_tavily_apikey';
 const STORAGE_WEBSEARCH_PROVIDER_KEY = 'marketpulse_websearch_provider';
 
-export type WebSearchProvider = 'tavily' | 'websearchapi' | 'none';
+export type WebSearchProvider = 'tavily' | 'claude' | 'websearchapi' | 'none';
 
 export function useApiKeys() {
   const [keys, setKeys] = useState<Record<ProviderName, string | null>>({
@@ -79,7 +79,7 @@ export function useApiKeys() {
 
     // Load web search provider preference (default to tavily)
     const savedWebSearchProvider = localStorage.getItem(STORAGE_WEBSEARCH_PROVIDER_KEY) as WebSearchProvider | null;
-    if (savedWebSearchProvider && ['tavily', 'websearchapi', 'none'].includes(savedWebSearchProvider)) {
+    if (savedWebSearchProvider && ['tavily', 'claude', 'websearchapi', 'none'].includes(savedWebSearchProvider)) {
       setWebSearchProviderState(savedWebSearchProvider);
     }
 
@@ -157,9 +157,10 @@ export function useApiKeys() {
   // Get the active web search API key based on selected provider
   const getActiveWebSearchKey = useCallback((): string | null => {
     if (webSearchProvider === 'tavily') return tavilyApiKey;
+    if (webSearchProvider === 'claude') return keys.anthropic; // Uses Anthropic API key
     if (webSearchProvider === 'websearchapi') return webSearchApiKey;
     return null;
-  }, [webSearchProvider, tavilyApiKey, webSearchApiKey]);
+  }, [webSearchProvider, tavilyApiKey, webSearchApiKey, keys.anthropic]);
 
   return {
     keys,

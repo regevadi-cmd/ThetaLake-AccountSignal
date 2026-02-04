@@ -360,7 +360,7 @@ export default function Home() {
     provider: ProviderName;
     model: string;
     apiKey?: string;
-    webSearchProvider: 'tavily' | 'websearchapi' | 'none';
+    webSearchProvider: 'tavily' | 'claude' | 'websearchapi' | 'none';
     tavilyKey?: string | null;
     webSearchKey?: string | null;
   }) => {

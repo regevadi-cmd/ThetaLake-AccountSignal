@@ -233,6 +233,7 @@ export function ApiKeyModal({
 
   const getWebSearchKeyForProvider = () => {
     if (webSearchProvider === 'tavily') return tavilyKey;
+    if (webSearchProvider === 'claude') return apiKey; // Uses Anthropic API key
     if (webSearchProvider === 'websearchapi') return webKey;
     return '';
   };
@@ -479,6 +480,28 @@ export function ApiKeyModal({
                   <span className="text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-400">Recommended</span>
                 </button>
 
+                {/* Claude Web Search Option */}
+                <button
+                  onClick={() => setWebSearchProvider('claude')}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
+                    webSearchProvider === 'claude'
+                      ? 'border-orange-500 bg-orange-500/10'
+                      : 'border-zinc-700 hover:border-zinc-600'
+                  }`}
+                >
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                    webSearchProvider === 'claude' ? 'border-orange-500' : 'border-zinc-600'
+                  }`}>
+                    {webSearchProvider === 'claude' && (
+                      <div className="w-2 h-2 rounded-full bg-orange-500" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm text-white">Claude Web Search</div>
+                    <div className="text-xs text-zinc-500">Uses Anthropic API key, powered by Brave</div>
+                  </div>
+                </button>
+
                 {/* WebSearchAPI Option */}
                 <button
                   onClick={() => setWebSearchProvider('websearchapi')}
@@ -598,6 +621,26 @@ export function ApiKeyModal({
                   <div className="flex items-center gap-2 text-xs text-purple-400">
                     <Check className="w-3 h-3" />
                     Tavily API key configured - click Test to verify
+                  </div>
+                )}
+              </div>
+            )}
+
+            {webSearchProvider === 'claude' && (
+              <div className="space-y-2 p-3 bg-orange-500/5 rounded-lg border border-orange-500/20">
+                <div className="flex items-center gap-2 text-sm text-orange-300">
+                  <Key className="w-4 h-4" />
+                  <span>Uses your Anthropic API key from the AI Provider tab</span>
+                </div>
+                {apiKey ? (
+                  <div className="flex items-center gap-2 text-xs text-emerald-400">
+                    <Check className="w-3 h-3" />
+                    Anthropic API key configured
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-xs text-amber-400">
+                    <Key className="w-3 h-3" />
+                    Configure Anthropic API key in the AI Provider tab
                   </div>
                 )}
               </div>

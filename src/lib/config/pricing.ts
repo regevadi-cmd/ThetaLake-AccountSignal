@@ -31,10 +31,10 @@ export const AI_PRICING: Record<string, Record<string, ModelPricing>> = {
     default: { inputPer1M: 2.50, outputPer1M: 10.00 },
   },
   anthropic: {
+    'claude-sonnet-4-5-20250929': { inputPer1M: 3.00, outputPer1M: 15.00 },
+    'claude-opus-4-5-20251101': { inputPer1M: 5.00, outputPer1M: 25.00 },
+    'claude-haiku-4-5-20251201': { inputPer1M: 0.80, outputPer1M: 4.00 },
     'claude-sonnet-4-20250514': { inputPer1M: 3.00, outputPer1M: 15.00 },
-    'claude-3-5-sonnet-20241022': { inputPer1M: 3.00, outputPer1M: 15.00 },
-    'claude-3-5-haiku-20241022': { inputPer1M: 0.80, outputPer1M: 4.00 },
-    'claude-3-opus-20240229': { inputPer1M: 15.00, outputPer1M: 75.00 },
     default: { inputPer1M: 3.00, outputPer1M: 15.00 },
   },
   perplexity: {
@@ -49,6 +49,7 @@ export const AI_PRICING: Record<string, Record<string, ModelPricing>> = {
 // Search Provider Pricing (USD per query)
 export const SEARCH_PRICING: Record<string, SearchPricing> = {
   tavily: { perQuery: 0.01 },
+  claude: { perQuery: 0.01 }, // $10 per 1000 searches
   websearchapi: { perQuery: 0.005 },
   none: { perQuery: 0 },
 };
