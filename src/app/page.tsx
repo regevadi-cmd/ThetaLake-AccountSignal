@@ -197,7 +197,10 @@ export default function Home() {
 
   // Use server settings when authenticated, local settings otherwise (for admin editing)
   const effectiveProvider = isAuthenticated ? serverProvider : selectedProvider;
-  const effectiveModel = isAuthenticated ? getServerModel(effectiveProvider) : localSelectedModel;
+  const rawModel = isAuthenticated ? getServerModel(effectiveProvider) : localSelectedModel;
+  // Validate that the model belongs to the current provider, fallback to provider default if not
+  const providerModels = PROVIDER_INFO[effectiveProvider].models.map(m => m.id);
+  const effectiveModel = providerModels.includes(rawModel) ? rawModel : PROVIDER_INFO[effectiveProvider].defaultModel;
   const effectiveHasKey = isAuthenticated ? serverHasKey(effectiveProvider) : hasKey(effectiveProvider);
   const effectiveWebSearchProvider = isAuthenticated ? serverWebSearchProvider : webSearchProvider;
 
