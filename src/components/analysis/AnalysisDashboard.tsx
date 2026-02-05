@@ -99,37 +99,24 @@ export function AnalysisDashboard({
       const filename = `${companyName.replace(/[^a-zA-Z0-9]/g, '_')}_Analysis_${new Date().toISOString().split('T')[0]}.pdf`;
 
       const opt = {
-        margin: [10, 10, 10, 10] as [number, number, number, number],
+        margin: 10,
         filename,
-        image: { type: 'jpeg' as const, quality: 0.98 },
+        image: { type: 'jpeg' as const, quality: 0.95 },
         html2canvas: {
           scale: 2,
           useCORS: true,
-          letterRendering: true,
-          scrollY: 0,
-          windowWidth: element.scrollWidth,
-          windowHeight: element.scrollHeight,
+          logging: false,
         },
         jsPDF: {
           unit: 'mm' as const,
           format: 'a4' as const,
           orientation: 'portrait' as const,
         },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
       };
 
-      // Generate PDF as blob and trigger download
-      const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
-
-      // Create download link
-      const url = URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Use the simpler API with save() which handles download
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (html2pdf() as any).set(opt).from(element).save();
     } catch (error) {
       console.error('PDF export failed:', error);
       alert('PDF export failed. Please try again.');
