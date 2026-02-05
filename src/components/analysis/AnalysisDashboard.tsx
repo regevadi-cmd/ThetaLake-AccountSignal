@@ -92,7 +92,8 @@ export function AnalysisDashboard({
     setIsExporting(true);
     try {
       // Dynamic import to avoid SSR issues
-      const html2pdf = (await import('html2pdf.js')).default;
+      const html2pdfModule = await import('html2pdf.js');
+      const html2pdf = html2pdfModule.default;
 
       const element = dashboardRef.current;
       const filename = `${companyName.replace(/[^a-zA-Z0-9]/g, '_')}_Analysis_${new Date().toISOString().split('T')[0]}.pdf`;
@@ -106,6 +107,8 @@ export function AnalysisDashboard({
           useCORS: true,
           letterRendering: true,
           scrollY: 0,
+          windowWidth: element.scrollWidth,
+          windowHeight: element.scrollHeight,
         },
         jsPDF: {
           unit: 'mm' as const,
@@ -115,9 +118,21 @@ export function AnalysisDashboard({
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
       };
 
-      await html2pdf().set(opt).from(element).save();
+      // Generate PDF as blob and trigger download
+      const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
+
+      // Create download link
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error('PDF export failed:', error);
+      alert('PDF export failed. Please try again.');
     } finally {
       setIsExporting(false);
     }
