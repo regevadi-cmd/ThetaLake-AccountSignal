@@ -341,6 +341,7 @@ function isGenericListingPage(url: string): boolean {
       /\/news\/?$/,
       /\/press\/?$/,
       /\/blog\/?$/,
+      /\/us\/resources\/case-studies\/?$/, // Proofpoint specific
     ];
 
     for (const pattern of genericPatterns) {
@@ -358,6 +359,27 @@ function isGenericListingPage(url: string): boolean {
     return false;
   } catch {
     return true; // Invalid URL, reject it
+  }
+}
+
+// Validate URL actually exists and returns 200 (not 404)
+async function validateUrlExists(url: string): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    const response = await fetch(url, {
+      method: 'HEAD',
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; MarketPulse/1.0)'
+      }
+    });
+
+    clearTimeout(timeout);
+    return response.ok;
+  } catch {
+    return false;
   }
 }
 
@@ -476,5 +498,17 @@ DO NOT return generic listing page URLs. Only return URLs to specific content pa
     }
   }
 
-  return mentions;
+  // Validate all URLs actually exist (filter out 404s and broken links)
+  const validatedMentions = await Promise.all(
+    mentions.map(async (mention) => {
+      const exists = await validateUrlExists(mention.url);
+      if (!exists) {
+        console.warn(`URL does not exist or returns error: ${mention.url}`);
+        return null;
+      }
+      return mention;
+    })
+  );
+
+  return validatedMentions.filter((m): m is ClaudeCompetitorMention => m !== null);
 }

@@ -261,42 +261,67 @@ function isValidCompetitorUrl(url: string, expectedDomain: string): boolean {
 
 // Check if URL is a generic listing/index page (likely hallucinated)
 function isGenericListingPage(url: string): boolean {
-  const urlLower = url.toLowerCase();
-  const path = new URL(url).pathname.toLowerCase();
+  try {
+    const path = new URL(url).pathname.toLowerCase();
 
-  // Reject URLs that end with generic listing paths
-  const genericPatterns = [
-    /\/customers\/?$/,
-    /\/clients\/?$/,
-    /\/case-studies\/?$/,
-    /\/case-study\/?$/,
-    /\/resources\/?$/,
-    /\/resources\/case-studies\/?$/,
-    /\/success-stories\/?$/,
-    /\/testimonials\/?$/,
-    /\/partners\/?$/,
-    /\/integrations\/?$/,
-    /\/solutions\/?$/,
-    /\/industries\/?$/,
-    /\/news\/?$/,
-    /\/press\/?$/,
-    /\/blog\/?$/,
-  ];
+    // Reject URLs that end with generic listing paths
+    const genericPatterns = [
+      /\/customers\/?$/,
+      /\/clients\/?$/,
+      /\/case-studies\/?$/,
+      /\/case-study\/?$/,
+      /\/resources\/?$/,
+      /\/resources\/case-studies\/?$/,
+      /\/success-stories\/?$/,
+      /\/testimonials\/?$/,
+      /\/partners\/?$/,
+      /\/integrations\/?$/,
+      /\/solutions\/?$/,
+      /\/industries\/?$/,
+      /\/news\/?$/,
+      /\/press\/?$/,
+      /\/blog\/?$/,
+      /\/us\/resources\/case-studies\/?$/, // Proofpoint specific
+    ];
 
-  // Check if URL matches any generic pattern
-  for (const pattern of genericPatterns) {
-    if (pattern.test(path)) {
+    // Check if URL matches any generic pattern
+    for (const pattern of genericPatterns) {
+      if (pattern.test(path)) {
+        return true;
+      }
+    }
+
+    // Also reject very short paths (likely index pages)
+    const pathParts = path.split('/').filter(p => p.length > 0);
+    if (pathParts.length <= 1) {
       return true;
     }
-  }
 
-  // Also reject very short paths (likely index pages)
-  const pathParts = path.split('/').filter(p => p.length > 0);
-  if (pathParts.length <= 1) {
-    return true;
+    return false;
+  } catch {
+    return true; // Invalid URL, reject
   }
+}
 
-  return false;
+// Validate URL actually exists and returns 200 (not 404)
+async function validateUrlExists(url: string): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+    const response = await fetch(url, {
+      method: 'HEAD',
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; MarketPulse/1.0)'
+      }
+    });
+
+    clearTimeout(timeout);
+    return response.ok; // Returns true for 2xx status codes
+  } catch {
+    return false; // Network error, timeout, or other issue
+  }
 }
 
 // Check if content is actually grounded (not hallucinated)
@@ -411,19 +436,36 @@ export async function tavilySearchCompetitorMentions(
         // STRICT content check - must describe a real business relationship
         const isRealRelationship = isBusinessRelationship(result.content, result.title, companyName);
 
-        // Also accept if URL clearly indicates case study or customer content
-        const isCustomerContent = urlLower.match(/(case-study|casestudy|customer-story|customer-success|customers\/|clients\/)/);
+        // Only accept if URL clearly indicates a SPECIFIC case study or customer story (not listing pages)
+        // Must have additional path segments after the category (e.g., /customers/truist-story not /customers/)
+        const isSpecificCustomerContent = urlLower.match(/(case-study|casestudy|customer-story|customer-success)\/.+/) ||
+          urlLower.match(/customers\/[a-z0-9-]+/) ||
+          urlLower.match(/clients\/[a-z0-9-]+/);
 
-        return isRealRelationship || isCustomerContent;
+        return isRealRelationship || isSpecificCustomerContent;
       });
 
-      return relevantResults.map(result => ({
-        competitorName: COMPETITOR_NAMES[domain] || domain,
-        title: result.title,
-        url: result.url,
-        summary: createTechSummary(result.content, companyName),
-        mentionType: inferMentionType(result.url, result.content)
-      }));
+      // Validate URLs actually exist (filter out 404s)
+      const validatedResults = await Promise.all(
+        relevantResults.map(async (result) => {
+          const exists = await validateUrlExists(result.url);
+          if (!exists) {
+            console.warn(`URL does not exist or returns error: ${result.url}`);
+            return null;
+          }
+          return result;
+        })
+      );
+
+      return validatedResults
+        .filter((r): r is TavilySearchResult => r !== null)
+        .map(result => ({
+          competitorName: COMPETITOR_NAMES[domain] || domain,
+          title: result.title,
+          url: result.url,
+          summary: createTechSummary(result.content, companyName),
+          mentionType: inferMentionType(result.url, result.content)
+        }));
     } catch (err) {
       // Silently fail for individual competitor searches
       console.warn(`Failed to search ${domain} for ${companyName}:`, err);

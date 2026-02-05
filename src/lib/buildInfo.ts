@@ -2,6 +2,6 @@
 // Do not edit manually
 
 export const buildInfo = {
-  commitHash: '434147d',
-  buildDate: '2026-02-05T15:54:06Z',
+  commitHash: '0b259e2',
+  buildDate: '2026-02-05T16:00:37Z',
 };
