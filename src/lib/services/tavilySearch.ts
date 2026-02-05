@@ -166,33 +166,56 @@ function inferMentionType(url: string, content: string): CompetitorMention['ment
   return 'other';
 }
 
-// Check if content is about technology activity (not finance/advisory)
-function isTechnologyRelated(content: string, title: string): boolean {
+// Check if content describes a real business relationship (deployment, partnership, customer)
+function isBusinessRelationship(content: string, title: string, companyName: string): boolean {
   const text = (content + ' ' + title).toLowerCase();
+  const companyLower = companyName.toLowerCase();
 
-  // Technology-related keywords
-  const techKeywords = [
-    'integration', 'platform', 'solution', 'software', 'deploy', 'implement',
-    'compliance', 'archiving', 'capture', 'surveillance', 'monitor', 'analyze',
-    'ai', 'machine learning', 'automation', 'api', 'connector', 'plugin',
-    'customer', 'use case', 'case study', 'product', 'feature', 'launch',
-    'partnership', 'technology partner', 'tech partner', 'certified'
+  // STRONG relationship indicators - company must be subject/object of these actions
+  const relationshipPatterns = [
+    // Deployment/usage patterns
+    `${companyLower} deploys`, `${companyLower} uses`, `${companyLower} chose`,
+    `${companyLower} selected`, `${companyLower} implements`, `${companyLower} adopted`,
+    `deployed by ${companyLower}`, `used by ${companyLower}`, `chosen by ${companyLower}`,
+    `selected by ${companyLower}`, `implemented by ${companyLower}`,
+    // Partnership patterns
+    `${companyLower} partners`, `${companyLower} and`, `partner with ${companyLower}`,
+    `partnership with ${companyLower}`, `alliance with ${companyLower}`,
+    // Customer patterns
+    `${companyLower} customer`, `customer ${companyLower}`, `client ${companyLower}`,
+    // Case study patterns
+    'case study', 'success story', 'customer story',
+    // Integration patterns
+    `${companyLower} integration`, `integrates with ${companyLower}`,
+    // Announcement patterns
+    'announces', 'announcement', 'press release', 'jointly'
   ];
 
-  // Finance/advisory keywords to exclude
-  const financeKeywords = [
-    'advisory board', 'board member', 'board of directors', 'co-author',
-    'investment bank', 'financial advisor', 'underwriter', 'ipo',
-    'sec filing', 'regulatory filing', 'proxy statement', 'securities',
-    'conference speaker', 'panel discussion', 'webinar speaker',
-    'industry report co-author', 'white paper co-author'
+  // Check if any relationship pattern exists
+  const hasRelationshipPattern = relationshipPatterns.some(pattern => text.includes(pattern));
+
+  // EXCLUSION patterns - these indicate it's NOT a real business relationship
+  const exclusionPatterns = [
+    // People/bios
+    'executive', 'leadership', 'team member', 'biography', 'profile',
+    'leads the', 'oversees', 'responsible for', 'experience at',
+    'previously at', 'former', 'joined from', 'worked at', 'career',
+    'ceo', 'cfo', 'cto', 'coo', 'vp of', 'evp', 'svp', 'director of',
+    'chief', 'president', 'founder', 'co-founder',
+    // Investment/funding (not technology relationship)
+    'funded by', 'invested', 'portfolio company', 'venture', 'capital',
+    'acquisition of', 'acquired by', 'merger', 'ipo', 'valuation',
+    // Events/speaking
+    'speaker', 'keynote', 'panel', 'webinar', 'conference', 'event',
+    'presentation', 'fireside chat',
+    // Generic mentions
+    'such as', 'including', 'like', 'similar to', 'compared to',
+    'competitor', 'alternative', 'vs', 'versus'
   ];
 
-  // Check if it has tech keywords and doesn't have finance keywords
-  const hasTechKeyword = techKeywords.some(kw => text.includes(kw));
-  const hasFinanceKeyword = financeKeywords.some(kw => text.includes(kw));
+  const hasExclusionPattern = exclusionPatterns.some(pattern => text.includes(pattern));
 
-  return hasTechKeyword && !hasFinanceKeyword;
+  return hasRelationshipPattern && !hasExclusionPattern;
 }
 
 // Create a concise technology-focused summary
@@ -227,33 +250,43 @@ export async function tavilySearchCompetitorMentions(
   const mentions: CompetitorMention[] = [];
 
   // Search for the company across all competitor domains in parallel
-  // Focus on technology-related content: integrations, partnerships, customer deployments
+  // Focus specifically on deployments, partnerships, case studies, press releases
   const searchPromises = COMPETITOR_DOMAINS.map(async (domain) => {
     try {
-      // Search for technology-focused content
+      // More specific search query focused on business relationships
       const response = await tavilySearch(
-        `"${companyName}" site:${domain} (integration OR customer OR partner OR deploys OR platform OR solution OR compliance OR archiving)`,
+        `"${companyName}" site:${domain} (customer OR "case study" OR deploys OR partnership OR "press release" OR announcement)`,
         apiKey,
         { maxResults: 3, includeAnswer: false, searchDepth: 'advanced' }
       );
 
-      // Filter results to only include technology-related content
+      // Strict filtering for actual business relationships
       const relevantResults = response.results.filter(result => {
+        const urlLower = result.url.toLowerCase();
         const titleLower = result.title.toLowerCase();
         const contentLower = result.content.toLowerCase();
         const companyLower = companyName.toLowerCase();
 
-        // Must mention the company name in title or prominently in content
+        // Must mention the company name
         const mentionsCompany = titleLower.includes(companyLower) ||
           contentLower.includes(companyLower);
 
-        // Exclude generic pages like careers, about, contact, pricing
-        const isGenericPage = result.url.toLowerCase().match(/(career|job|about-us|contact|pricing|demo|login|signup|privacy|terms|webinar|event|conference)/);
+        if (!mentionsCompany) return false;
 
-        // Must be technology-related, not finance/advisory
-        const isTechContent = isTechnologyRelated(result.content, result.title);
+        // STRICT URL exclusions - reject these page types entirely
+        const isExcludedPage = urlLower.match(
+          /(career|job|team|leadership|executive|people|staff|management|about-us|about\/|contact|pricing|demo|login|signup|privacy|terms|webinar|event|conference|speaker|press-kit|media-kit|investor|board|governance)/
+        );
 
-        return mentionsCompany && !isGenericPage && isTechContent;
+        if (isExcludedPage) return false;
+
+        // STRICT content check - must describe a real business relationship
+        const isRealRelationship = isBusinessRelationship(result.content, result.title, companyName);
+
+        // Also accept if URL clearly indicates case study or customer content
+        const isCustomerContent = urlLower.match(/(case-study|casestudy|customer-story|customer-success|customers\/|clients\/)/);
+
+        return isRealRelationship || isCustomerContent;
       });
 
       return relevantResults.map(result => ({
