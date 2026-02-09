@@ -177,7 +177,7 @@ export function UsageCostsWindow({ open, onOpenChange }: UsageCostsWindowProps) 
 
   return createPortal(
     <div
-      className="fixed z-[9999] flex flex-col rounded-xl border border-zinc-700 bg-zinc-900 shadow-2xl shadow-black/60"
+      className="fixed z-[9999] flex flex-col rounded-xl border border-border bg-background shadow-2xl shadow-black/30 dark:shadow-black/60"
       style={{
         left: windowState.x,
         top: windowState.y,
@@ -190,27 +190,27 @@ export function UsageCostsWindow({ open, onOpenChange }: UsageCostsWindowProps) 
     >
       {/* Title Bar */}
       <div
-        className="flex items-center justify-between px-4 py-2.5 bg-zinc-800 border-b border-zinc-700 rounded-t-xl flex-shrink-0"
+        className="flex items-center justify-between px-4 py-2.5 bg-muted border-b border-border rounded-t-xl flex-shrink-0"
         onMouseDown={handleDragStart}
         style={{ cursor: dragging ? 'grabbing' : 'grab' }}
       >
         <div className="flex items-center gap-2 pointer-events-none">
-          <GripHorizontal className="w-4 h-4 text-zinc-500" />
-          <DollarSign className="w-4 h-4 text-emerald-400" />
-          <span className="text-sm font-medium text-white">Usage &amp; Costs</span>
+          <GripHorizontal className="w-4 h-4 text-muted-foreground" />
+          <DollarSign className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+          <span className="text-sm font-medium text-foreground">Usage &amp; Costs</span>
         </div>
         <div className="flex items-center gap-1" style={{ pointerEvents: 'auto' }}>
           <button
             onMouseDown={(e) => e.stopPropagation()}
             onClick={handleMinimize}
-            className="p-1 rounded hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
+            className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
           >
             <Minus className="w-4 h-4" />
           </button>
           <button
             onMouseDown={(e) => e.stopPropagation()}
             onClick={handleClose}
-            className="p-1 rounded hover:bg-red-500/20 text-zinc-400 hover:text-red-400 transition-colors"
+            className="p-1 rounded hover:bg-red-500/20 text-muted-foreground hover:text-red-500 dark:hover:text-red-400 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -232,7 +232,7 @@ export function UsageCostsWindow({ open, onOpenChange }: UsageCostsWindowProps) 
           style={{ touchAction: 'none' }}
         >
           {/* Diagonal grip lines */}
-          <svg width="14" height="14" viewBox="0 0 14 14" className="absolute bottom-0.5 right-0.5 text-zinc-500">
+          <svg width="14" height="14" viewBox="0 0 14 14" className="absolute bottom-0.5 right-0.5 text-muted-foreground">
             <line x1="10" y1="14" x2="14" y2="10" stroke="currentColor" strokeWidth="1.5" />
             <line x1="6" y1="14" x2="14" y2="6" stroke="currentColor" strokeWidth="1.5" />
             <line x1="2" y1="14" x2="14" y2="2" stroke="currentColor" strokeWidth="1.5" />
