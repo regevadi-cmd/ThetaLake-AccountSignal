@@ -12,6 +12,7 @@ interface UsagePeriod {
   aiCost: number;
   searchCost: number;
   byProvider: Record<string, { requests: number; cost: number }>;
+  bySearchProvider: Record<string, { queries: number; cost: number }>;
   byUser: Record<string, { email: string; requests: number; cost: number }>;
 }
 
@@ -165,6 +166,31 @@ export function UsageCosts() {
           </div>
         </div>
 
+        {/* By Search Engine */}
+        <div className="bg-card/50 border border-border rounded-lg p-4">
+          <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+            <Search className="w-4 h-4" />
+            By Search Engine (This Month)
+          </h3>
+          <div className="space-y-2">
+            {Object.entries(data.thisMonth.bySearchProvider || {}).length > 0 ? (
+              Object.entries(data.thisMonth.bySearchProvider).map(([provider, stats]) => (
+                <div key={provider} className="flex justify-between text-sm">
+                  <span className="text-muted-foreground capitalize">{provider}</span>
+                  <span className="text-foreground">
+                    {stats.queries} queries · {formatCost(stats.cost)}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="text-muted-foreground text-sm">No web search usage</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* User Breakdown */}
+      <div className="grid md:grid-cols-1 gap-4">
         {/* By User */}
         <div className="bg-card/50 border border-border rounded-lg p-4">
           <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">

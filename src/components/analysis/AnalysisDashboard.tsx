@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { AnalysisResult, ProviderName, PROVIDER_INFO } from '@/types/analysis';
 import { CacheMetadata } from '@/types/api';
 import { CompanyInfo } from '@/components/layout/Header';
@@ -38,7 +38,6 @@ interface AnalysisDashboardProps {
   sharedCacheMetadata?: CacheMetadata | null;
   onRefresh?: () => void;
   isRefreshing?: boolean;
-  showStockChart?: boolean;
 }
 
 // Helper function to format relative time
@@ -74,11 +73,26 @@ export function AnalysisDashboard({
   cachedDataTimestamp,
   sharedCacheMetadata,
   onRefresh,
-  isRefreshing,
-  showStockChart
+  isRefreshing
 }: AnalysisDashboardProps) {
   const [isExporting, setIsExporting] = useState(false);
+  const [showStockChart, setShowStockChart] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
+
+  // Listen for stock chart preference changes from localStorage
+  useEffect(() => {
+    const loadPref = () => {
+      setShowStockChart(localStorage.getItem('marketpulse_show_stock_chart') === 'true');
+    };
+    loadPref();
+    window.addEventListener('storage', loadPref);
+    // Also poll for same-tab changes (storage event only fires cross-tab)
+    const interval = setInterval(loadPref, 1000);
+    return () => {
+      window.removeEventListener('storage', loadPref);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Local cache (bookmarks/history)
   const isCached = cachedDataTimestamp !== null && cachedDataTimestamp !== undefined;

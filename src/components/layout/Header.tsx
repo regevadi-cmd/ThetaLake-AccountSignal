@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { TrendingUp, Search, Loader2, Settings } from 'lucide-react';
+import { TrendingUp, Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ProviderName, PROVIDER_INFO } from '@/types/analysis';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { LoginButton } from '@/components/auth/LoginButton';
 import { UserMenu } from '@/components/auth/UserMenu';
@@ -29,8 +28,6 @@ interface HeaderProps {
   onSearch: (companyName: string, companyInfo?: CompanyInfo) => void;
   onClearResults?: () => void; // Called when user starts typing to clear old results
   loading: boolean;
-  selectedProvider: ProviderName;
-  selectedModel: string;
   onSettingsClick: () => void;
   onAboutClick: () => void;
 }
@@ -39,8 +36,6 @@ export function Header({
   onSearch,
   onClearResults,
   loading,
-  selectedProvider,
-  selectedModel,
   onSettingsClick,
   onAboutClick
 }: HeaderProps) {
@@ -204,12 +199,6 @@ export function Header({
     }
   };
 
-  const currentProviderInfo = PROVIDER_INFO[selectedProvider];
-  // Validate that the model belongs to the current provider, otherwise use provider's default
-  const currentModelInfo = currentProviderInfo.models.find(m => m.id === selectedModel)
-    || currentProviderInfo.models.find(m => m.id === currentProviderInfo.defaultModel)
-    || currentProviderInfo.models[0];
-
   return (
     <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-lg border-b border-border">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
@@ -232,7 +221,7 @@ export function Header({
             <div className="flex sm:hidden items-center gap-2">
               {!authLoading && (
                 isAuthenticated ? (
-                  <UserMenu onSettingsClick={isAdmin ? onSettingsClick : undefined} onAboutClick={onAboutClick} />
+                  <UserMenu onSettingsClick={onSettingsClick} onAboutClick={onAboutClick} />
                 ) : (
                   <LoginButton />
                 )
@@ -301,38 +290,6 @@ export function Header({
                 )}
               </div>
 
-              {/* Provider/Model Display - Hidden on mobile, shown on desktop */}
-              {isAdmin && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onSettingsClick}
-                  className="hidden md:flex bg-card border-input text-muted-foreground hover:bg-accent hover:text-foreground justify-between gap-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{currentProviderInfo.name}</span>
-                    <span className="text-muted-foreground">•</span>
-                    <span className="text-muted-foreground">{currentModelInfo.name}</span>
-                  </div>
-                  {currentProviderInfo.supportsWebGrounding && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" title="Web search" />
-                  )}
-                  <Settings className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                </Button>
-              )}
-
-              {/* Provider/Model Display (non-admin - read only) - Hidden on mobile */}
-              {!isAdmin && isAuthenticated && (
-                <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-card border border-input rounded-md text-sm">
-                  <span className="font-medium text-muted-foreground">{currentProviderInfo.name}</span>
-                  <span className="text-muted-foreground">•</span>
-                  <span className="text-muted-foreground">{currentModelInfo.name}</span>
-                  {currentProviderInfo.supportsWebGrounding && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" title="Web search" />
-                  )}
-                </div>
-              )}
-
               <Button
                 type="submit"
                 disabled={loading || !searchInput.trim() || isSearching}
@@ -356,7 +313,7 @@ export function Header({
           <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
             {!authLoading && (
               isAuthenticated ? (
-                <UserMenu onSettingsClick={isAdmin ? onSettingsClick : undefined} onAboutClick={onAboutClick} />
+                <UserMenu onSettingsClick={onSettingsClick} onAboutClick={onAboutClick} />
               ) : (
                 <LoginButton />
               )

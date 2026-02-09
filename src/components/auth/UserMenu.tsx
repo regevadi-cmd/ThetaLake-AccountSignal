@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogOut, Settings, Shield, Info } from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface UserMenuProps {
   onSettingsClick?: () => void;
@@ -68,14 +67,14 @@ export function UserMenu({ onSettingsClick, onAboutClick }: UserMenuProps) {
           )}
         </div>
         <DropdownMenuSeparator />
-        {isAdmin && onSettingsClick && (
+        {onSettingsClick && (
           <>
             <DropdownMenuItem
               onClick={onSettingsClick}
               className="cursor-pointer"
             >
               <Settings className="w-4 h-4 mr-2" />
-              Settings
+              {isAdmin ? 'Settings' : 'Preferences'}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
@@ -89,10 +88,6 @@ export function UserMenu({ onSettingsClick, onAboutClick }: UserMenuProps) {
             About
           </DropdownMenuItem>
         )}
-        <DropdownMenuSeparator />
-        <div className="px-1 py-1">
-          <ThemeToggle />
-        </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleSignOut}

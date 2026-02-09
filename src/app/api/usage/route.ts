@@ -23,6 +23,7 @@ interface UsagePeriod {
   aiCost: number;
   searchCost: number;
   byProvider: Record<string, { requests: number; cost: number }>;
+  bySearchProvider: Record<string, { queries: number; cost: number }>;
   byUser: Record<string, { email: string; requests: number; cost: number }>;
 }
 

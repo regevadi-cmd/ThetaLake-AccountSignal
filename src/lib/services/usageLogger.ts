@@ -80,6 +80,7 @@ export interface UsageSummary {
   aiCost: number;
   searchCost: number;
   byProvider: Record<string, { requests: number; cost: number }>;
+  bySearchProvider: Record<string, { queries: number; cost: number }>;
   byUser: Record<string, { email: string; requests: number; cost: number }>;
 }
 
@@ -106,6 +107,7 @@ export async function getUsageSummary(
       aiCost: 0,
       searchCost: 0,
       byProvider: {},
+      bySearchProvider: {},
       byUser: {},
     };
   }
@@ -116,6 +118,7 @@ export async function getUsageSummary(
     aiCost: 0,
     searchCost: 0,
     byProvider: {},
+    bySearchProvider: {},
     byUser: {},
   };
 
@@ -128,13 +131,23 @@ export async function getUsageSummary(
     summary.aiCost += aiCost;
     summary.searchCost += searchCost;
 
-    // By provider
+    // By AI provider
     const provider = log.ai_provider;
     if (!summary.byProvider[provider]) {
       summary.byProvider[provider] = { requests: 0, cost: 0 };
     }
     summary.byProvider[provider].requests++;
     summary.byProvider[provider].cost += totalCost;
+
+    // By search provider
+    const searchProvider = log.search_provider;
+    if (searchProvider && searchProvider !== 'none' && searchCost > 0) {
+      if (!summary.bySearchProvider[searchProvider]) {
+        summary.bySearchProvider[searchProvider] = { queries: 0, cost: 0 };
+      }
+      summary.bySearchProvider[searchProvider].queries += parseInt(log.search_queries) || 0;
+      summary.bySearchProvider[searchProvider].cost += searchCost;
+    }
 
     // By user
     const userId = log.user_id || 'anonymous';

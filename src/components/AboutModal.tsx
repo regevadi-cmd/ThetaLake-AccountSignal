@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Info, Github, ExternalLink, FileText } from 'lucide-react';
+import { Info, Github, ExternalLink, FileText, Cpu } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -15,9 +15,11 @@ import { buildInfo } from '@/lib/buildInfo';
 interface AboutModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  providerName?: string;
+  modelName?: string;
 }
 
-export function AboutModal({ open, onOpenChange }: AboutModalProps) {
+export function AboutModal({ open, onOpenChange, providerName, modelName }: AboutModalProps) {
   const [showReleaseNotes, setShowReleaseNotes] = useState(false);
 
   const version = process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0';
@@ -83,6 +85,17 @@ export function AboutModal({ open, onOpenChange }: AboutModalProps) {
 
           {/* Version Info */}
           <div className="bg-zinc-800/50 rounded-lg p-4 space-y-2">
+            {providerName && (
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-400 text-sm flex items-center gap-1.5">
+                  <Cpu className="w-3.5 h-3.5" />
+                  AI Provider
+                </span>
+                <span className="text-white text-sm">
+                  {providerName}{modelName ? ` · ${modelName}` : ''}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between items-center">
               <span className="text-zinc-400 text-sm">Version</span>
               <span className="text-white font-mono text-sm">v{version}</span>

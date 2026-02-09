@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ExternalLink, Eye, EyeOff, Check, Settings, Key, Search, Cpu, Loader2, X, CheckCircle2, XCircle, Users, Trash2, Shield, User, DollarSign, LineChart } from 'lucide-react';
+import { ExternalLink, Eye, EyeOff, Check, Settings, Key, Search, Cpu, Loader2, X, CheckCircle2, XCircle, Users, Trash2, Shield, User, DollarSign, LineChart, Sun, Moon, Monitor, Sliders } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +23,6 @@ interface SaveSettings {
   webSearchProvider: WebSearchProvider;
   tavilyKey?: string | null;
   webSearchKey?: string | null;
-  showStockChart?: boolean;
 }
 
 interface UserProfile {
@@ -36,28 +36,29 @@ interface UserProfile {
 interface ApiKeyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isAdmin?: boolean;
   selectedProvider: ProviderName;
   selectedModel: string;
   currentKey?: string;
   webSearchProvider: WebSearchProvider;
   tavilyApiKey?: string;
   webSearchApiKey?: string;
-  showStockChart?: boolean;
   onSaveAll: (settings: SaveSettings) => Promise<void>;
 }
 
 export function ApiKeyModal({
   open,
   onOpenChange,
+  isAdmin = false,
   selectedProvider: initialProvider,
   selectedModel: initialModel,
   currentKey,
   webSearchProvider: initialWebSearchProvider,
   tavilyApiKey,
   webSearchApiKey,
-  showStockChart: initialShowStockChart = false,
   onSaveAll
 }: ApiKeyModalProps) {
+  const { theme, setTheme } = useTheme();
   const [selectedProvider, setSelectedProvider] = useState<ProviderName>(initialProvider);
   const [selectedModel, setSelectedModel] = useState(initialModel);
   const [apiKey, setApiKey] = useState('');
@@ -67,7 +68,7 @@ export function ApiKeyModal({
   const [webKey, setWebKey] = useState('');
   const [showWebKey, setShowWebKey] = useState(false);
   const [webSearchProvider, setWebSearchProvider] = useState<WebSearchProvider>(initialWebSearchProvider);
-  const [activeTab, setActiveTab] = useState<'provider' | 'websearch' | 'users' | 'usage'>('provider');
+  const [activeTab, setActiveTab] = useState<'preferences' | 'provider' | 'websearch' | 'users' | 'usage'>('preferences');
   const [testingKey, setTestingKey] = useState(false);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -78,7 +79,14 @@ export function ApiKeyModal({
   const [testingWebSearch, setTestingWebSearch] = useState(false);
   const [webSearchTestResult, setWebSearchTestResult] = useState<{ valid: boolean; error?: string } | null>(null);
   const [saving, setSaving] = useState(false);
-  const [stockChartEnabled, setStockChartEnabled] = useState(initialShowStockChart);
+  const [stockChartEnabled, setStockChartEnabled] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const stored = localStorage.getItem('marketpulse_show_stock_chart');
+    setStockChartEnabled(stored === 'true');
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -88,11 +96,15 @@ export function ApiKeyModal({
       setTavilyKey(tavilyApiKey || '');
       setWebKey(webSearchApiKey || '');
       setWebSearchProvider(initialWebSearchProvider);
-      setStockChartEnabled(initialShowStockChart);
       setKeyTestResult(null);
       setWebSearchTestResult(null);
+      // Load user preferences from localStorage
+      const stored = localStorage.getItem('marketpulse_show_stock_chart');
+      setStockChartEnabled(stored === 'true');
+      // Default to preferences tab for non-admins
+      if (!isAdmin) setActiveTab('preferences');
     }
-  }, [open, initialProvider, initialModel, currentKey, tavilyApiKey, webSearchApiKey, initialWebSearchProvider, initialShowStockChart]);
+  }, [open, initialProvider, initialModel, currentKey, tavilyApiKey, webSearchApiKey, initialWebSearchProvider, isAdmin]);
 
   // Reset web search test result when keys change
   useEffect(() => {
@@ -227,7 +239,6 @@ export function ApiKeyModal({
         webSearchProvider,
         tavilyKey: tavilyKey.trim() || null,
         webSearchKey: webKey.trim() || null,
-        showStockChart: stockChartEnabled,
       });
       onOpenChange(false);
     } catch {
@@ -260,53 +271,135 @@ export function ApiKeyModal({
         {/* Tab Navigation */}
         <div className="flex gap-1 p-1 bg-zinc-800/50 rounded-lg">
           <button
-            onClick={() => setActiveTab('provider')}
+            onClick={() => setActiveTab('preferences')}
             className={`flex-1 flex items-center justify-center gap-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
-              activeTab === 'provider'
+              activeTab === 'preferences'
                 ? 'bg-zinc-700 text-white'
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
-            <Cpu className="w-4 h-4" />
-            <span className="hidden sm:inline">AI Provider</span>
-            <span className="sm:hidden">AI</span>
+            <Sliders className="w-4 h-4" />
+            <span className="hidden sm:inline">Preferences</span>
+            <span className="sm:hidden">Prefs</span>
           </button>
-          <button
-            onClick={() => setActiveTab('websearch')}
-            className={`flex-1 flex items-center justify-center gap-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
-              activeTab === 'websearch'
-                ? 'bg-zinc-700 text-white'
+          {isAdmin && (
+            <>
+              <button
+                onClick={() => setActiveTab('provider')}
+                className={`flex-1 flex items-center justify-center gap-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                  activeTab === 'provider'
+                    ? 'bg-zinc-700 text-white'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Cpu className="w-4 h-4" />
+                <span className="hidden sm:inline">AI Provider</span>
+                <span className="sm:hidden">AI</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('websearch')}
+                className={`flex-1 flex items-center justify-center gap-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                  activeTab === 'websearch'
+                    ? 'bg-zinc-700 text-white'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Search className="w-4 h-4" />
+                <span className="hidden sm:inline">Web Search</span>
+                <span className="sm:hidden">Search</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('users')}
+                className={`flex-1 flex items-center justify-center gap-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                  activeTab === 'users'
+                    ? 'bg-zinc-700 text-white'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span>Users</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('usage')}
+                className={`flex-1 flex items-center justify-center gap-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                  activeTab === 'usage'
+                    ? 'bg-zinc-700 text-white'
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
-            <Search className="w-4 h-4" />
-            <span className="hidden sm:inline">Web Search</span>
-            <span className="sm:hidden">Search</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`flex-1 flex items-center justify-center gap-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
-              activeTab === 'users'
-                ? 'bg-zinc-700 text-white'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>Users</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('usage')}
-            className={`flex-1 flex items-center justify-center gap-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
-              activeTab === 'usage'
-                ? 'bg-zinc-700 text-white'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            <DollarSign className="w-4 h-4" />
-            <span className="hidden sm:inline">Usage</span>
-            <span className="sm:hidden">$</span>
-          </button>
+                <DollarSign className="w-4 h-4" />
+                <span className="hidden sm:inline">Usage</span>
+                <span className="sm:hidden">$</span>
+              </button>
+            </>
+          )}
         </div>
+
+        {/* Preferences Tab */}
+        {activeTab === 'preferences' && mounted && (
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-zinc-400">
+              Personalize your MarketPulse experience. These settings are saved to this browser.
+            </p>
+
+            {/* Theme Selection */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-300">Theme</label>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { value: 'light', label: 'Light', icon: Sun },
+                  { value: 'dark', label: 'Dark', icon: Moon },
+                  { value: 'system', label: 'System', icon: Monitor },
+                ] as const).map(({ value, label, icon: Icon }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setTheme(value)}
+                    className={`flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${
+                      theme === value
+                        ? 'border-emerald-500 bg-emerald-500/10 text-white'
+                        : 'border-zinc-700 hover:border-zinc-600 text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="text-sm font-medium">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Stock Chart Toggle */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-300">Display</label>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !stockChartEnabled;
+                  setStockChartEnabled(next);
+                  localStorage.setItem('marketpulse_show_stock_chart', String(next));
+                }}
+                className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all text-left ${
+                  stockChartEnabled
+                    ? 'border-emerald-500 bg-emerald-500/10'
+                    : 'border-zinc-700 hover:border-zinc-600'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <LineChart className={`w-4 h-4 ${stockChartEnabled ? 'text-emerald-400' : 'text-zinc-500'}`} />
+                  <div>
+                    <div className="font-medium text-sm text-white">Stock Chart</div>
+                    <div className="text-xs text-zinc-500">Show live stock quotes for public companies</div>
+                  </div>
+                </div>
+                <div className={`w-9 h-5 rounded-full transition-colors flex items-center ${
+                  stockChartEnabled ? 'bg-emerald-500 justify-end' : 'bg-zinc-600 justify-start'
+                }`}>
+                  <div className="w-4 h-4 rounded-full bg-white mx-0.5" />
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Provider Tab */}
         {activeTab === 'provider' && (
@@ -450,32 +543,6 @@ export function ApiKeyModal({
               </div>
             )}
 
-            {/* Display Options */}
-            <div className="space-y-2 pt-2 border-t border-zinc-800">
-              <label className="text-sm font-medium text-zinc-300">Display Options</label>
-              <button
-                type="button"
-                onClick={() => setStockChartEnabled(!stockChartEnabled)}
-                className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all text-left ${
-                  stockChartEnabled
-                    ? 'border-emerald-500 bg-emerald-500/10'
-                    : 'border-zinc-700 hover:border-zinc-600'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <LineChart className={`w-4 h-4 ${stockChartEnabled ? 'text-emerald-400' : 'text-zinc-500'}`} />
-                  <div>
-                    <div className="font-medium text-sm text-white">Stock Chart</div>
-                    <div className="text-xs text-zinc-500">Show live stock quotes for public companies</div>
-                  </div>
-                </div>
-                <div className={`w-9 h-5 rounded-full transition-colors flex items-center ${
-                  stockChartEnabled ? 'bg-emerald-500 justify-end' : 'bg-zinc-600 justify-start'
-                }`}>
-                  <div className="w-4 h-4 rounded-full bg-white mx-0.5" />
-                </div>
-              </button>
-            </div>
           </div>
         )}
 

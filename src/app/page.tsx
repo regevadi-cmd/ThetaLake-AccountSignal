@@ -350,8 +350,7 @@ export default function Home() {
   }, [companyName, analysisData, selectedProvider, isBookmarked, getBookmark, removeBookmark, addBookmark]);
 
   const handleSettingsClick = () => {
-    // Only allow admins to open settings
-    if (isAdmin) {
+    if (isAuthenticated) {
       setShowApiKeyModal(true);
     }
   };
@@ -370,7 +369,6 @@ export default function Home() {
     webSearchProvider: 'tavily' | 'claude' | 'websearchapi' | 'none';
     tavilyKey?: string | null;
     webSearchKey?: string | null;
-    showStockChart?: boolean;
   }) => {
     // Save all settings to server API for admin
     try {
@@ -379,11 +377,6 @@ export default function Home() {
         [`${settings.provider}_model`]: settings.model,
         web_search_provider: settings.webSearchProvider,
       };
-
-      // Display settings
-      if (settings.showStockChart !== undefined) {
-        payload.show_stock_chart = settings.showStockChart;
-      }
 
       // Only include API key if provided (not empty)
       if (settings.apiKey) {
@@ -453,8 +446,6 @@ export default function Home() {
           setError(null);
         }}
         loading={loading}
-        selectedProvider={effectiveProvider}
-        selectedModel={effectiveModel}
         onSettingsClick={handleSettingsClick}
         onAboutClick={() => setShowAboutModal(true)}
       />
@@ -580,7 +571,6 @@ export default function Home() {
                 sharedCacheMetadata={sharedCacheMetadata}
                 onRefresh={handleRefresh}
                 isRefreshing={loading}
-                showStockChart={serverShowStockChart}
               />
             )}
           </TabsContent>
@@ -764,18 +754,18 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Settings Modal - Admin only */}
-      {isAdmin && (
+      {/* Settings Modal */}
+      {isAuthenticated && (
         <ApiKeyModal
           open={showApiKeyModal}
           onOpenChange={setShowApiKeyModal}
+          isAdmin={isAdmin}
           selectedProvider={effectiveProvider}
           selectedModel={effectiveModel}
           currentKey={serverSettings.openai_api_key || serverSettings.anthropic_api_key || serverSettings.gemini_api_key || serverSettings.perplexity_api_key || ''}
           webSearchProvider={effectiveWebSearchProvider}
           tavilyApiKey={serverSettings.tavily_api_key || undefined}
           webSearchApiKey={serverSettings.websearchapi_key || undefined}
-          showStockChart={serverShowStockChart}
           onSaveAll={handleSaveAllSettings}
         />
       )}
@@ -784,6 +774,8 @@ export default function Home() {
       <AboutModal
         open={showAboutModal}
         onOpenChange={setShowAboutModal}
+        providerName={PROVIDER_INFO[effectiveProvider].name}
+        modelName={PROVIDER_INFO[effectiveProvider].models.find(m => m.id === effectiveModel)?.name || effectiveModel}
       />
 
       {/* Cache Confirmation Dialog */}
