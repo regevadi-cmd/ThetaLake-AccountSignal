@@ -179,6 +179,18 @@ export async function claudeSearchInvestorDocs(
   return response.results;
 }
 
+export async function claudeSearchInvestorPresentation(
+  companyName: string,
+  apiKey: string
+): Promise<ClaudeSearchResult[]> {
+  const response = await claudeSearch(
+    `"${companyName}" investor presentation latest investor day`,
+    apiKey,
+    { maxResults: 1, includeAnswer: false }
+  );
+  return response.results;
+}
+
 export async function claudeSearchLeadershipChanges(
   companyName: string,
   apiKey: string

@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAIProvider } from '@/lib/ai/factory';
 import { AnalyzeRequest, AnalyzeResponse, ApiError, CacheMetadata } from '@/types/api';
 import { ProviderName, PROVIDER_INFO, AnalysisResult } from '@/types/analysis';
-import { searchCompanyNews, searchCompanyCaseStudies, searchCompanyInfo, searchInvestorDocuments } from '@/lib/services/webSearch';
-import { tavilySearchCompanyNews, tavilySearchCaseStudies, tavilySearchCompanyInfo, tavilySearchInvestorDocs, tavilySearchCompetitorMentions, tavilySearchLeadershipChanges, tavilySearchRegulatoryEvents, CompetitorMention, RegulatoryEvent } from '@/lib/services/tavilySearch';
-import { claudeSearchCompanyNews, claudeSearchCaseStudies, claudeSearchCompanyInfo, claudeSearchInvestorDocs, claudeSearchLeadershipChanges, claudeSearchRegulatoryEvents, claudeSearchCompetitorMentions } from '@/lib/services/claudeSearch';
+import { searchCompanyNews, searchCompanyCaseStudies, searchCompanyInfo, searchInvestorDocuments, searchInvestorPresentation } from '@/lib/services/webSearch';
+import { tavilySearchCompanyNews, tavilySearchCaseStudies, tavilySearchCompanyInfo, tavilySearchInvestorDocs, tavilySearchInvestorPresentation, tavilySearchCompetitorMentions, tavilySearchLeadershipChanges, tavilySearchRegulatoryEvents, CompetitorMention, RegulatoryEvent } from '@/lib/services/tavilySearch';
+import { claudeSearchCompanyNews, claudeSearchCaseStudies, claudeSearchCompanyInfo, claudeSearchInvestorDocs, claudeSearchInvestorPresentation, claudeSearchLeadershipChanges, claudeSearchRegulatoryEvents, claudeSearchCompetitorMentions } from '@/lib/services/claudeSearch';
 import { createClient } from '@/lib/supabase/server';
 import { parseLeadershipArticles } from '@/lib/ai/parseLeadershipNews';
 import { deduplicateRegulatoryEvents } from '@/lib/ai/parser';
@@ -210,11 +210,12 @@ export async function POST(request: NextRequest) {
       try {
         if (useTavily) {
           // Use Tavily for web search
-          const [newsResults, caseStudyResults, infoResults, investorDocsResults, competitorMentionsResults, leadershipResults, regulatoryResults] = await Promise.all([
+          const [newsResults, caseStudyResults, infoResults, investorDocsResults, investorPresentationResults, competitorMentionsResults, leadershipResults, regulatoryResults] = await Promise.all([
             tavilySearchCompanyNews(companyName.trim(), tavilyApiKey!),
             tavilySearchCaseStudies(companyName.trim(), tavilyApiKey!),
             tavilySearchCompanyInfo(companyName.trim(), tavilyApiKey!),
             tavilySearchInvestorDocs(companyName.trim(), tavilyApiKey!),
+            tavilySearchInvestorPresentation(companyName.trim(), tavilyApiKey!),
             tavilySearchCompetitorMentions(companyName.trim(), tavilyApiKey!),
             tavilySearchLeadershipChanges(companyName.trim(), tavilyApiKey!),
             tavilySearchRegulatoryEvents(companyName.trim(), tavilyApiKey!)
@@ -225,17 +226,21 @@ export async function POST(request: NextRequest) {
             caseStudies: caseStudyResults.map(r => ({ title: r.title, url: r.url, description: r.content })),
             info: { sources: infoResults.sources.map(r => ({ title: r.title, url: r.url, description: r.content })) },
             investorDocs: investorDocsResults.map(r => ({ title: r.title, url: r.url, description: r.content })),
+            investorPresentation: investorPresentationResults.length > 0
+              ? { title: investorPresentationResults[0].title, url: investorPresentationResults[0].url, description: investorPresentationResults[0].content }
+              : null,
             competitorMentions: competitorMentionsResults,
             leadershipChanges: leadershipResults.map(r => ({ title: r.title, url: r.url, description: r.content })),
             regulatoryEvents: regulatoryResults
           };
         } else if (useClaudeSearch) {
           // Use Claude web search (powered by Brave)
-          const [newsResults, caseStudyResults, infoResults, investorDocsResults, leadershipResults, regulatoryResults, competitorResults] = await Promise.all([
+          const [newsResults, caseStudyResults, infoResults, investorDocsResults, investorPresentationResults, leadershipResults, regulatoryResults, competitorResults] = await Promise.all([
             claudeSearchCompanyNews(companyName.trim(), apiKey),
             claudeSearchCaseStudies(companyName.trim(), apiKey),
             claudeSearchCompanyInfo(companyName.trim(), apiKey),
             claudeSearchInvestorDocs(companyName.trim(), apiKey),
+            claudeSearchInvestorPresentation(companyName.trim(), apiKey),
             claudeSearchLeadershipChanges(companyName.trim(), apiKey),
             claudeSearchRegulatoryEvents(companyName.trim(), apiKey),
             claudeSearchCompetitorMentions(companyName.trim(), apiKey)
@@ -246,24 +251,31 @@ export async function POST(request: NextRequest) {
             caseStudies: caseStudyResults.map(r => ({ title: r.title, url: r.url, description: r.content })),
             info: { sources: infoResults.sources.map(r => ({ title: r.title, url: r.url, description: r.content })) },
             investorDocs: investorDocsResults.map(r => ({ title: r.title, url: r.url, description: r.content })),
+            investorPresentation: investorPresentationResults.length > 0
+              ? { title: investorPresentationResults[0].title, url: investorPresentationResults[0].url, description: investorPresentationResults[0].content }
+              : null,
             leadershipChanges: leadershipResults.map(r => ({ title: r.title, url: r.url, description: r.content })),
             regulatoryEvents: regulatoryResults,
             competitorMentions: competitorResults
           };
         } else {
           // Use WebSearchAPI for web search
-          const [newsResults, caseStudyResults, infoResults, investorDocsResults] = await Promise.all([
+          const [newsResults, caseStudyResults, infoResults, investorDocsResults, investorPresentationResults] = await Promise.all([
             searchCompanyNews(companyName.trim(), webSearchApiKey!),
             searchCompanyCaseStudies(companyName.trim(), webSearchApiKey!),
             searchCompanyInfo(companyName.trim(), webSearchApiKey!),
-            searchInvestorDocuments(companyName.trim(), webSearchApiKey!)
+            searchInvestorDocuments(companyName.trim(), webSearchApiKey!),
+            searchInvestorPresentation(companyName.trim(), webSearchApiKey!)
           ]);
 
           webSearchData = {
             news: newsResults,
             caseStudies: caseStudyResults,
             info: infoResults,
-            investorDocs: investorDocsResults
+            investorDocs: investorDocsResults,
+            investorPresentation: investorPresentationResults.length > 0
+              ? { title: investorPresentationResults[0].title, url: investorPresentationResults[0].url, description: investorPresentationResults[0].description }
+              : null
           };
         }
       } catch (err) {
@@ -317,6 +329,20 @@ export async function POST(request: NextRequest) {
           url: item.url,
           summary: item.description
         }));
+      }
+
+      // Prepend investor presentation as the first item
+      if (webSearchData.investorPresentation) {
+        const pres = webSearchData.investorPresentation;
+        analysis.investorDocs = [
+          { title: pres.title, url: pres.url, summary: pres.description },
+          ...analysis.investorDocs.filter(d => d.url !== pres.url)
+        ];
+      } else {
+        analysis.investorDocs = [
+          { title: 'Investor Presentation', url: '', summary: 'No recent investor presentation found for this company.' },
+          ...analysis.investorDocs
+        ];
       }
 
       // Replace competitor mentions with real web search results (Tavily only)

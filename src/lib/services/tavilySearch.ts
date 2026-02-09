@@ -105,6 +105,18 @@ export async function tavilySearchInvestorDocs(
   return response.results;
 }
 
+export async function tavilySearchInvestorPresentation(
+  companyName: string,
+  apiKey: string
+): Promise<TavilySearchResult[]> {
+  const response = await tavilySearch(
+    `"${companyName}" investor presentation latest investor day`,
+    apiKey,
+    { maxResults: 1, includeAnswer: false }
+  );
+  return response.results;
+}
+
 // Competitor companies to search for mentions
 const COMPETITOR_DOMAINS = [
   'smarsh.com',

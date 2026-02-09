@@ -112,3 +112,15 @@ export async function searchInvestorDocuments(
   );
   return response.organic;
 }
+
+export async function searchInvestorPresentation(
+  companyName: string,
+  apiKey: string
+): Promise<WebSearchResult[]> {
+  const response = await searchWeb(
+    `"${companyName}" investor presentation latest investor day`,
+    apiKey,
+    { maxResults: 1, includeContent: false, includeAnswer: false, timeframe: 'year' }
+  );
+  return response.organic;
+}

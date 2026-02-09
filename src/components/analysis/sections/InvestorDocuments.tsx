@@ -1,4 +1,4 @@
-import { Briefcase, ExternalLink, Link as LinkIcon, Lock, FileText } from 'lucide-react';
+import { Briefcase, ExternalLink, Link as LinkIcon, Lock, FileText, Presentation } from 'lucide-react';
 import { SectionCard } from '../SectionCard';
 import { LinkItem } from '@/types/analysis';
 import { CompanyInfo } from '@/components/layout/Header';
@@ -6,6 +6,13 @@ import { CompanyInfo } from '@/components/layout/Header';
 interface InvestorDocumentsProps {
   documents: LinkItem[];
   companyInfo?: CompanyInfo | null;
+}
+
+function isPresentationItem(doc: LinkItem): boolean {
+  const titleLower = (doc.title || '').toLowerCase();
+  return titleLower.includes('investor presentation') ||
+    titleLower.includes('investor day') ||
+    (doc.title === 'Investor Presentation' && !doc.url);
 }
 
 function isValidHttpUrl(url: string): boolean {
@@ -89,8 +96,10 @@ export function InvestorDocuments({ documents, companyInfo }: InvestorDocumentsP
         )}
         {documents.map((doc, i) => {
           const hasValidUrl = isValidHttpUrl(doc.url);
+          const isPresentation = i === 0 && isPresentationItem(doc);
+          const Icon = isPresentation ? Presentation : LinkIcon;
           return (
-            <div key={i} className="py-2 border-b border-border/50 last:border-0">
+            <div key={i} className={`py-2 border-b border-border/50 last:border-0 ${isPresentation ? 'rounded-md border border-amber-300 dark:border-amber-600 bg-amber-50/50 dark:bg-amber-950/20 px-3 mb-2' : ''}`}>
               {hasValidUrl ? (
                 <a
                   href={doc.url}
@@ -99,9 +108,14 @@ export function InvestorDocuments({ documents, companyInfo }: InvestorDocumentsP
                   className="block group cursor-pointer"
                 >
                   <div className="flex items-start gap-2">
-                    <LinkIcon className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                    <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isPresentation ? 'text-amber-700 dark:text-amber-300' : 'text-amber-600 dark:text-amber-400'}`} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1">
+                        {isPresentation && (
+                          <span className="text-[10px] font-semibold uppercase tracking-wider bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded mr-1">
+                            Presentation
+                          </span>
+                        )}
                         <span className="text-amber-600 dark:text-amber-400 group-hover:text-amber-500 dark:group-hover:text-amber-300 group-hover:underline transition-colors font-medium text-sm">
                           {doc.title}
                         </span>
@@ -115,8 +129,13 @@ export function InvestorDocuments({ documents, companyInfo }: InvestorDocumentsP
                 </a>
               ) : (
                 <div className="flex items-start gap-2">
-                  <LinkIcon className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isPresentation ? 'text-amber-700 dark:text-amber-300' : 'text-muted-foreground'}`} />
                   <div className="flex-1 min-w-0">
+                    {isPresentation && (
+                      <span className="text-[10px] font-semibold uppercase tracking-wider bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded mr-1">
+                        Presentation
+                      </span>
+                    )}
                     <span className="text-foreground font-medium text-sm">{doc.title}</span>
                     {doc.summary && (
                       <p className="text-muted-foreground text-xs mt-1 line-clamp-2">{doc.summary}</p>
