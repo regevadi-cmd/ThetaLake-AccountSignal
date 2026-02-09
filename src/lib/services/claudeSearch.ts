@@ -305,9 +305,9 @@ export async function claudeConsolidatedCompetitorSearch(
   const client = new Anthropic({ apiKey });
   const competitorList = competitors.join(', ');
 
-  const systemPrompt = `You are a research assistant. Search for content published by these compliance/archiving vendors about "${companyName}": ${competitorList}.
+  const systemPrompt = `You are a research assistant. Search for any content where "${companyName}" and these compliance/archiving vendors appear together: ${competitorList}.
 
-We want to find case studies, press releases, partnership announcements, integration pages, or customer stories where one of these vendors mentions "${companyName}" as a customer, partner, or integration.
+Look for case studies, press releases, partnership announcements, integration pages, customer stories, news articles, or any content — from the vendor, from "${companyName}" itself, or from third-party sources — mentioning both together.
 
 Return as JSON:
 {
@@ -319,8 +319,8 @@ Return as JSON:
 IMPORTANT:
 - Only include REAL results with actual, working URLs
 - Do not fabricate or guess URLs
-- Only include results where "${companyName}" is explicitly mentioned alongside a vendor
-- Focus on press releases from businesswire.com, prnewswire.com, or vendor websites`;
+- Only include results where "${companyName}" and a vendor are both explicitly mentioned
+- Sources can be vendor sites, company sites, news outlets, press wire services, etc.`;
 
   try {
     const response = await client.messages.create({

@@ -132,8 +132,9 @@ export async function tavilyConsolidatedCompetitorSearch(
   const competitorOR = competitors.map(c => `"${c}"`).join(' OR ');
 
   const queries = [
-    `"${companyName}" (${competitorOR}) partnership OR customer OR integration`,
-    `"${companyName}" (${competitorOR}) site:businesswire.com OR site:prnewswire.com`,
+    `"${companyName}" (${competitorOR}) partnership OR customer OR integration OR deployment OR case study`,
+    `"${companyName}" (${competitorOR}) site:businesswire.com OR site:prnewswire.com OR site:globenewswire.com`,
+    `"${companyName}" (${competitorOR}) announces OR selects OR deploys OR partners`,
   ];
 
   const seenUrls = new Set<string>();

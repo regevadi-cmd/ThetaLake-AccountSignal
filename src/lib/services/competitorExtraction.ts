@@ -38,18 +38,19 @@ export async function extractCompetitorMentions(
     .map((r, i) => `[${i + 1}] Title: ${r.title} | URL: ${r.url} | Content: ${r.content.substring(0, 300)}`)
     .join('\n');
 
-  const prompt = `Extract mentions of compliance/archiving vendors publishing content about a company.
+  const prompt = `Extract mentions where "${companyName}" and a compliance/archiving vendor appear together.
 
 COMPANY BEING ANALYZED: ${companyName}
 COMPLIANCE VENDORS TO LOOK FOR: ${competitors.join(', ')}
 
-These vendors are competitors of Theta Lake. We want to find content they have published that mentions "${companyName}" — such as case studies featuring "${companyName}" as a customer, press releases about partnerships, integration announcements, or any business relationship.
+Find any content — from vendor websites, the company itself, press releases, news articles, or any other source — where "${companyName}" and one of these vendors are mentioned together in a business context (customer relationship, partnership, integration, deployment, case study, comparison, etc.).
 
 SEARCH RESULTS:
 ${resultsList}
 
 RULES:
-- Only extract results where a compliance vendor has published content about "${companyName}"
+- Extract results where "${companyName}" and a vendor appear together in a business context
+- The source can be the vendor, the company, a news outlet, or any third party
 - The URL field MUST be copied exactly from one of the results above
 - Both "${companyName}" AND the vendor name must appear in the content
 - Provide a 1-2 sentence summary citing specific evidence from the content
