@@ -377,7 +377,7 @@ export function ApiKeyModal({
                     onClick={() => setTheme(value)}
                     className={`flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${
                       theme === value
-                        ? 'border-emerald-500 bg-emerald-500/10 text-white'
+                        ? 'border-emerald-500 bg-emerald-500/10 text-foreground'
                         : 'border-border hover:border-muted-foreground text-muted-foreground hover:text-foreground'
                     }`}
                   >
@@ -407,7 +407,7 @@ export function ApiKeyModal({
                 <div className="flex items-center gap-3">
                   <LineChart className={`w-4 h-4 ${stockChartEnabled ? 'text-emerald-400' : 'text-muted-foreground'}`} />
                   <div>
-                    <div className="font-medium text-sm text-white">Stock Chart</div>
+                    <div className="font-medium text-sm text-foreground">Stock Chart</div>
                     <div className="text-xs text-muted-foreground">Show live stock quotes for public companies</div>
                   </div>
                 </div>
@@ -436,7 +436,7 @@ export function ApiKeyModal({
                       onClick={() => setSelectedProvider(p)}
                       className={`flex items-center gap-2 p-3 rounded-lg border transition-all ${
                         selectedProvider === p
-                          ? 'border-emerald-500 bg-emerald-500/10 text-white'
+                          ? 'border-emerald-500 bg-emerald-500/10 text-foreground'
                           : 'border-border hover:border-muted-foreground text-muted-foreground hover:text-foreground'
                       }`}
                     >
@@ -594,7 +594,7 @@ export function ApiKeyModal({
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-sm text-white">Tavily</div>
+                    <div className="font-medium text-sm text-foreground">Tavily</div>
                     <div className="text-xs text-muted-foreground">AI-powered search, recommended for accuracy</div>
                   </div>
                   <span className="text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-400">Recommended</span>
@@ -617,7 +617,7 @@ export function ApiKeyModal({
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-sm text-white">Claude Web Search</div>
+                    <div className="font-medium text-sm text-foreground">Claude Web Search</div>
                     <div className="text-xs text-muted-foreground">Uses Anthropic API key, powered by Brave</div>
                   </div>
                 </button>
@@ -639,7 +639,7 @@ export function ApiKeyModal({
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-sm text-white">WebSearchAPI</div>
+                    <div className="font-medium text-sm text-foreground">WebSearchAPI</div>
                     <div className="text-xs text-muted-foreground">Powered by Serper, fast results</div>
                   </div>
                 </button>
@@ -661,7 +661,7 @@ export function ApiKeyModal({
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-sm text-white">Disabled</div>
+                    <div className="font-medium text-sm text-foreground">Disabled</div>
                     <div className="text-xs text-muted-foreground">Use AI knowledge only (no real-time data)</div>
                   </div>
                 </button>
@@ -672,7 +672,7 @@ export function ApiKeyModal({
             {webSearchProvider === 'tavily' && (
               <div className="space-y-2 p-3 bg-purple-500/5 rounded-lg border border-purple-500/20">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-purple-300 flex items-center gap-2">
+                  <label className="text-sm font-medium text-purple-600 dark:text-purple-300 flex items-center gap-2">
                     <Key className="w-4 h-4" />
                     Tavily API Key
                   </label>
@@ -708,7 +708,7 @@ export function ApiKeyModal({
                     variant="outline"
                     onClick={testWebSearchKey}
                     disabled={!tavilyKey.trim() || testingWebSearch}
-                    className="border-purple-500/50 text-purple-300 hover:text-white hover:bg-purple-500/20 whitespace-nowrap"
+                    className="border-purple-500/50 text-purple-500 dark:text-purple-300 hover:text-purple-700 dark:hover:text-white hover:bg-purple-500/20 whitespace-nowrap"
                   >
                     {testingWebSearch ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -748,7 +748,7 @@ export function ApiKeyModal({
 
             {webSearchProvider === 'claude' && (
               <div className="space-y-2 p-3 bg-orange-500/5 rounded-lg border border-orange-500/20">
-                <div className="flex items-center gap-2 text-sm text-orange-300">
+                <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-300">
                   <Key className="w-4 h-4" />
                   <span>Uses your Anthropic API key from the AI Provider tab</span>
                 </div>
@@ -769,7 +769,7 @@ export function ApiKeyModal({
             {webSearchProvider === 'websearchapi' && (
               <div className="space-y-2 p-3 bg-cyan-500/5 rounded-lg border border-cyan-500/20">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-cyan-300 flex items-center gap-2">
+                  <label className="text-sm font-medium text-cyan-600 dark:text-cyan-300 flex items-center gap-2">
                     <Key className="w-4 h-4" />
                     WebSearchAPI Key
                   </label>
@@ -805,7 +805,7 @@ export function ApiKeyModal({
                     variant="outline"
                     onClick={testWebSearchKey}
                     disabled={!webKey.trim() || testingWebSearch}
-                    className="border-cyan-500/50 text-cyan-300 hover:text-white hover:bg-cyan-500/20 whitespace-nowrap"
+                    className="border-cyan-500/50 text-cyan-600 dark:text-cyan-300 hover:text-cyan-700 dark:hover:text-white hover:bg-cyan-500/20 whitespace-nowrap"
                   >
                     {testingWebSearch ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -927,7 +927,7 @@ export function ApiKeyModal({
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-white truncate">
+                          <span className="text-sm font-medium text-foreground truncate">
                             {user.display_name || user.email.split('@')[0]}
                           </span>
                           {user.role === 'admin' && (
