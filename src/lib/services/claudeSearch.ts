@@ -336,7 +336,7 @@ IMPORTANT:
       messages: [
         {
           role: 'user',
-          content: `Search for business relationships, partnerships, integrations, and customer mentions between "${companyName}" and these competitors: ${competitorList}`,
+          content: `Search for any content — press releases, case studies, news articles, partnership announcements — where "${companyName}" appears alongside any of these compliance/archiving vendors: ${competitorList}`,
         },
       ],
       system: systemPrompt,

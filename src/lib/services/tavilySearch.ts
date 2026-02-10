@@ -129,13 +129,21 @@ export async function tavilyConsolidatedCompetitorSearch(
 ): Promise<{ title: string; url: string; content: string }[]> {
   if (competitors.length === 0) return [];
 
-  const competitorOR = competitors.map(c => `"${c}"`).join(' OR ');
+  // Chunk competitors into groups of 5 to keep queries short enough for search APIs
+  const chunks: string[][] = [];
+  for (let i = 0; i < competitors.length; i += 5) {
+    chunks.push(competitors.slice(i, i + 5));
+  }
 
-  const queries = [
-    `"${companyName}" (${competitorOR}) partnership OR customer OR integration OR deployment OR case study`,
-    `"${companyName}" (${competitorOR}) site:businesswire.com OR site:prnewswire.com OR site:globenewswire.com`,
-    `"${companyName}" (${competitorOR}) announces OR selects OR deploys OR partners`,
-  ];
+  const queries: string[] = [];
+  for (const chunk of chunks) {
+    const orClause = chunk.map(c => `"${c}"`).join(' OR ');
+    queries.push(`"${companyName}" (${orClause}) partnership OR customer OR integration OR case study`);
+    queries.push(`"${companyName}" (${orClause}) announces OR selects OR deploys OR partners`);
+  }
+  // Also add a press wire query for the first chunk (most important competitors)
+  const firstOR = chunks[0].map(c => `"${c}"`).join(' OR ');
+  queries.push(`"${companyName}" (${firstOR}) site:businesswire.com OR site:prnewswire.com OR site:globenewswire.com`);
 
   const seenUrls = new Set<string>();
   const results: { title: string; url: string; content: string }[] = [];
@@ -144,7 +152,7 @@ export async function tavilyConsolidatedCompetitorSearch(
     const responses = await Promise.all(
       queries.map(query =>
         tavilySearch(query, apiKey, {
-          maxResults: 10,
+          maxResults: 5,
           includeAnswer: false,
           searchDepth: 'advanced'
         }).catch(err => {
