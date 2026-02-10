@@ -7,6 +7,7 @@ export interface CompanySearchResult {
   isPublic: boolean;
   publicStatus?: 'public' | 'private' | 'went_private' | 'pre_ipo' | 'unknown';
   isCustomSearch?: boolean; // True if this is a "search anyway" option
+  source?: 'known' | 'yahoo' | 'custom';
 }
 
 // Common companies for fuzzy matching
@@ -224,11 +225,59 @@ export async function GET(request: NextRequest) {
     symbol: m.company.symbol || undefined,
     description: getStatusDescription(m.company),
     isPublic: m.company.publicStatus === 'public',
-    publicStatus: m.company.publicStatus
+    publicStatus: m.company.publicStatus,
+    source: 'known' as const
   }));
 
   // Check if we have an exact or very close match
   const hasExactMatch = matches.length > 0 && matches[0].score >= 0.9;
+
+  // If hardcoded results are weak, also query Yahoo Finance for additional results
+  if (topMatches.length === 0 || topMatches[0]?.score < 0.9 || topMatches.length < 3) {
+    try {
+      const yahooResponse = await fetch(
+        `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(normalizedQuery)}&quotesCount=8&newsCount=0&enableFuzzyQuery=true&quotesQueryId=tss_match_phrase_query`,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+          }
+        }
+      );
+      if (yahooResponse.ok) {
+        const yahooData = await yahooResponse.json();
+        for (const quote of yahooData.quotes || []) {
+          const name = (quote.shortname || quote.longname || quote.symbol) as string;
+          if (!name) continue;
+
+          // Skip if already in results (match by symbol or name similarity)
+          const alreadyPresent = results.some(r =>
+            (r.symbol && r.symbol === quote.symbol) ||
+            r.name.toLowerCase() === name.toLowerCase()
+          );
+          if (alreadyPresent) continue;
+
+          const isEquity = quote.quoteType === 'EQUITY';
+          const exchange = (quote.exchange || '') as string;
+
+          results.push({
+            name,
+            symbol: isEquity ? (quote.symbol as string) : undefined,
+            description: isEquity
+              ? `${quote.symbol} - ${exchange}`
+              : `${(quote.quoteType as string) || 'Company'}`,
+            isPublic: isEquity,
+            publicStatus: isEquity ? 'public' : 'private',
+            source: 'yahoo' as const
+          });
+        }
+      }
+    } catch {
+      // Yahoo Finance failed, continue with hardcoded results only
+    }
+  }
+
+  // Cap total results at 8 (hardcoded + Yahoo combined)
+  const cappedResults = results.slice(0, 8);
 
   // Capitalize query for display
   const capitalizedQuery = query.trim()
@@ -237,29 +286,23 @@ export async function GET(request: NextRequest) {
     .join(' ');
 
   // Always add a "search anyway" option if the query doesn't exactly match the top result
-  const queryMatchesTopResult = results.length > 0 &&
-    results[0].name.toLowerCase() === query.toLowerCase().trim();
+  const queryMatchesTopResult = cappedResults.length > 0 &&
+    cappedResults[0].name.toLowerCase() === query.toLowerCase().trim();
 
   if (!queryMatchesTopResult && query.trim().length >= 2) {
-    // Add the custom search option
-    const customSearchOption: CompanySearchResult = {
+    // Add the custom search option at the end
+    cappedResults.push({
       name: capitalizedQuery,
       description: 'Search for this company',
       isPublic: true, // Assume public, will be determined during analysis
       publicStatus: 'unknown',
-      isCustomSearch: true
-    };
-
-    // If no matches, put custom search first; otherwise put it at the end
-    if (results.length === 0) {
-      results.push(customSearchOption);
-    } else {
-      results.push(customSearchOption);
-    }
+      isCustomSearch: true,
+      source: 'custom' as const
+    });
   }
 
   return NextResponse.json({
-    results,
+    results: cappedResults,
     exactMatch: hasExactMatch
   });
 }

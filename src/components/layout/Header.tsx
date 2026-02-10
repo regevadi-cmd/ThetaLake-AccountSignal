@@ -22,6 +22,7 @@ interface CompanySuggestion {
   isPublic: boolean;
   publicStatus?: 'public' | 'private' | 'went_private' | 'pre_ipo' | 'unknown';
   isCustomSearch?: boolean;
+  source?: 'known' | 'yahoo' | 'custom';
 }
 
 interface HeaderProps {
@@ -259,35 +260,47 @@ export function Header({
                     <div className="text-xs text-emerald-400 px-3 py-2 border-b border-border bg-emerald-500/10 sticky top-0">
                       Tap to select:
                     </div>
-                    {suggestions.map((suggestion, index) => (
-                      <button
-                        key={`${suggestion.name}-${suggestion.isCustomSearch ? 'custom' : 'known'}`}
-                        type="button"
-                        onClick={() => handleSelectSuggestion(suggestion)}
-                        className={`w-full flex items-center justify-between px-3 py-3 sm:py-2.5 text-left transition-colors ${
-                          suggestion.isCustomSearch ? 'border-t border-border' : ''
-                        } ${
-                          index === selectedIndex
-                            ? 'bg-emerald-500/20 text-foreground'
-                            : 'hover:bg-accent active:bg-muted text-muted-foreground'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          {suggestion.isCustomSearch && (
-                            <Search className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                    {suggestions.map((suggestion, index) => {
+                      // Show section divider when transitioning between source groups
+                      const prevSource = index > 0 ? suggestions[index - 1].source : null;
+                      const showDivider = index > 0 && suggestion.source !== prevSource && !suggestions[index - 1].isCustomSearch;
+
+                      return (
+                        <div key={`${suggestion.name}-${suggestion.source || 'unknown'}-${index}`}>
+                          {showDivider && suggestion.source === 'yahoo' && (
+                            <div className="text-[10px] uppercase tracking-wider text-muted-foreground/60 px-3 py-1.5 border-t border-border bg-muted/30">
+                              Yahoo Finance results
+                            </div>
                           )}
-                          <span className={`font-medium truncate ${suggestion.isCustomSearch ? 'text-cyan-400' : ''}`}>
-                            {suggestion.name}
-                          </span>
-                          {suggestion.symbol && !suggestion.isCustomSearch && (
-                            <span className="text-emerald-400 text-sm flex-shrink-0">{suggestion.symbol}</span>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleSelectSuggestion(suggestion)}
+                            className={`w-full flex items-center justify-between px-3 py-3 sm:py-2.5 text-left transition-colors ${
+                              suggestion.isCustomSearch ? 'border-t border-border' : ''
+                            } ${
+                              index === selectedIndex
+                                ? 'bg-emerald-500/20 text-foreground'
+                                : 'hover:bg-accent active:bg-muted text-muted-foreground'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              {suggestion.isCustomSearch && (
+                                <Search className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                              )}
+                              <span className={`font-medium truncate ${suggestion.isCustomSearch ? 'text-cyan-400' : ''}`}>
+                                {suggestion.name}
+                              </span>
+                              {suggestion.symbol && !suggestion.isCustomSearch && (
+                                <span className="text-emerald-400 text-sm flex-shrink-0">{suggestion.symbol}</span>
+                              )}
+                            </div>
+                            <span className={`text-xs ml-2 flex-shrink-0 hidden sm:inline ${suggestion.isCustomSearch ? 'text-cyan-400/70' : 'text-muted-foreground'}`}>
+                              {suggestion.description}
+                            </span>
+                          </button>
                         </div>
-                        <span className={`text-xs ml-2 flex-shrink-0 hidden sm:inline ${suggestion.isCustomSearch ? 'text-cyan-400/70' : 'text-muted-foreground'}`}>
-                          {suggestion.description}
-                        </span>
-                      </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
