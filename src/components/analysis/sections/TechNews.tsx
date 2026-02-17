@@ -51,7 +51,7 @@ export function TechNews({ news }: TechNewsProps) {
                           {item.title}
                         </span>
                         {formattedDate && (
-                          <span className="text-gray-400 dark:text-muted-foreground/60 text-[11px] whitespace-nowrap flex-shrink-0">{formattedDate}</span>
+                          <span className="text-gray-400 dark:text-muted-foreground/60 text-xs whitespace-nowrap flex-shrink-0">{formattedDate}</span>
                         )}
                       </div>
                       {item.summary && (
@@ -67,7 +67,7 @@ export function TechNews({ news }: TechNewsProps) {
                     <div className="flex items-baseline gap-2">
                       <span className="text-gray-700 dark:text-muted-foreground font-medium text-sm line-clamp-2">{item.title}</span>
                       {formattedDate && (
-                        <span className="text-gray-400 dark:text-muted-foreground/60 text-[11px] whitespace-nowrap flex-shrink-0">{formattedDate}</span>
+                        <span className="text-gray-400 dark:text-muted-foreground/60 text-xs whitespace-nowrap flex-shrink-0">{formattedDate}</span>
                       )}
                     </div>
                     {item.summary && (

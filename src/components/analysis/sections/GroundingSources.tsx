@@ -30,7 +30,7 @@ export function GroundingSources({ sources }: GroundingSourcesProps) {
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-1 bg-muted hover:bg-accent rounded-full text-xs text-muted-foreground hover:text-foreground transition-colors truncate max-w-xs"
+            className="px-3 py-2 sm:py-1 bg-muted hover:bg-accent rounded-full text-xs text-muted-foreground hover:text-foreground transition-colors truncate max-w-[calc(50vw-2rem)] sm:max-w-xs"
           >
             {extractHostname(url)}
           </a>

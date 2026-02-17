@@ -91,7 +91,7 @@ export function RegulatoryEvents({ events }: RegulatoryEventsProps) {
                           title={source.title || source.url}
                         >
                           <ExternalLink className="w-3 h-3" />
-                          <span className="truncate max-w-[120px]">
+                          <span className="truncate max-w-[160px] sm:max-w-[120px]">
                             {source.regulatoryBody || new URL(source.url).hostname.replace('www.', '')}
                           </span>
                         </a>

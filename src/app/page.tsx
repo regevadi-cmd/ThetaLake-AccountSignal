@@ -453,7 +453,7 @@ export default function Home() {
         onUsageClick={() => setShowUsageWindow(true)}
       />
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Guest Banner */}
         <GuestBanner />
 
@@ -791,7 +791,7 @@ export default function Home() {
 
       {/* Cache Confirmation Dialog */}
       <Dialog open={showCacheDialog} onOpenChange={setShowCacheDialog}>
-        <DialogContent className="bg-card border-border text-foreground max-w-md">
+        <DialogContent className="bg-card border-border text-foreground max-w-[calc(100vw-2rem)] sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg">
               <Users className="w-5 h-5 text-blue-400" />

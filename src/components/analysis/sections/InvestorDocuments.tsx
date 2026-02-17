@@ -112,7 +112,7 @@ export function InvestorDocuments({ documents, companyInfo }: InvestorDocumentsP
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1">
                         {isPresentation && (
-                          <span className="text-[10px] font-semibold uppercase tracking-wider bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded mr-1">
+                          <span className="text-xs font-semibold uppercase tracking-wider bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded mr-1">
                             Presentation
                           </span>
                         )}
@@ -132,7 +132,7 @@ export function InvestorDocuments({ documents, companyInfo }: InvestorDocumentsP
                   <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isPresentation ? 'text-amber-700 dark:text-amber-300' : 'text-muted-foreground'}`} />
                   <div className="flex-1 min-w-0">
                     {isPresentation && (
-                      <span className="text-[10px] font-semibold uppercase tracking-wider bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded mr-1">
+                      <span className="text-xs font-semibold uppercase tracking-wider bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded mr-1">
                         Presentation
                       </span>
                     )}

@@ -41,7 +41,7 @@ export function UserMenu({ onSettingsClick, onAboutClick, onUsageClick }: UserMe
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-background">
-          <Avatar className="h-8 w-8 border border-border">
+          <Avatar className="h-9 w-9 sm:h-8 sm:w-8 border border-border">
             <AvatarImage src={profile.avatarUrl || undefined} alt={profile.displayName || 'User'} />
             <AvatarFallback className="bg-muted text-foreground text-sm">
               {initials}

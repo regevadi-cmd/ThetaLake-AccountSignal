@@ -506,7 +506,7 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo, cla
             <button
               onClick={() => fetchData(activeTicker)}
               disabled={loading || chartLoading}
-              className="flex items-center gap-1.5 text-muted-foreground hover:text-emerald-500 px-2 py-1.5 rounded-lg hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/30 transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-emerald-500 px-3 py-2 sm:px-2 sm:py-1.5 rounded-lg hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/30 transition-colors disabled:opacity-50"
               title="Refresh stock quote"
             >
               <RefreshCw className={`w-4 h-4 ${loading || chartLoading ? 'animate-spin' : ''}`} />
@@ -546,7 +546,7 @@ export function StockCard({ ticker: initialTicker, companyName, companyInfo, cla
               key={range.value}
               onClick={() => handleRangeChange(range.value)}
               disabled={chartLoading}
-              className={`flex-1 min-w-[36px] px-2 sm:px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              className={`flex-1 min-w-[40px] px-2 sm:px-3 py-2 sm:py-1.5 text-xs font-medium rounded-md transition-colors ${
                 selectedRange === range.value
                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                   : 'text-muted-foreground hover:text-foreground hover:bg-accent'

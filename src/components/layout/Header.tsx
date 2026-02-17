@@ -256,7 +256,7 @@ export function Header({
 
                 {/* Company Suggestions Dropdown */}
                 {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-input rounded-lg shadow-xl z-50 overflow-hidden max-h-[60vh] overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-input rounded-lg shadow-xl z-50 overflow-hidden max-h-[50vh] sm:max-h-[60vh] overflow-y-auto">
                     <div className="text-xs text-emerald-400 px-3 py-2 border-b border-border bg-emerald-500/10 sticky top-0">
                       Tap to select:
                     </div>
